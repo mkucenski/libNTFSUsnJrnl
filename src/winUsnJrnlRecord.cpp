@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "winEvent.h"
-#include "winEventFile.h"
+#include "winUsnJrnlRecord.h"
+#include "winUsnJrnlRecordFile.h"
 #include "misc/debugMsgs.h"
 #include "misc/stringType.h"
 #include "misc/endianSwitch.h"
@@ -21,37 +21,35 @@
 #include <sstream>
 using namespace std;
 
-winEvent::winEvent(winEventFile* pEventFile, char* pData, long lOffset, DWORD dwLength)	:	m_pEventFile(pEventFile),
-																							m_lOffset(lOffset) {
-	memset(&m_eventLogRecord, 0, EVENTLOGRECORD_LENGTH);	
-	memcpy(&m_eventLogRecord, pData, (dwLength < EVENTLOGRECORD_LENGTH ? dwLength : EVENTLOGRECORD_LENGTH));
+winUsnJrnlRecord::winUsnJrnlRecord(winUsnJrnlRecordFile* pUsnJrnlRecordFile, char* pData, long lOffset, DWORD dwLength)
+		:	m_pUsnJrnlRecordFile(pUsnJrnlRecordFile),
+			m_lOffset(lOffset) {
+
+	memset(&m_usnJrnlRecord, 0, USN_RECORD_VER2_BASE_LENGTH);	
+	memcpy(&m_usnJrnlRecord, pData, (dwLength < USN_RECORD_VER2_BASE_LENGTH ? dwLength : USN_RECORD_VER2_BASE_LENGTH));
 	
-	BIGTOHOST32(m_eventLogRecord.dwClosingRecordNumber);
-	BIGTOHOST32(m_eventLogRecord.dwDataLength);
-	BIGTOHOST32(m_eventLogRecord.dwDataOffset);
-	BIGTOHOST32(m_eventLogRecord.dwEventID);
-	BIGTOHOST32(m_eventLogRecord.dwHeaderID);
-	BIGTOHOST32(m_eventLogRecord.dwLength);
-	BIGTOHOST32(m_eventLogRecord.dwRecordNumber);
-	BIGTOHOST32(m_eventLogRecord.dwStringOffset);
-	BIGTOHOST32(m_eventLogRecord.dwTimeGenerated);
-	BIGTOHOST32(m_eventLogRecord.dwTimeWritten);
-	BIGTOHOST32(m_eventLogRecord.dwUserSidLength);
-	BIGTOHOST32(m_eventLogRecord.dwUserSidOffset);
-	BIGTOHOST16(m_eventLogRecord.wEventCategory);
-	BIGTOHOST16(m_eventLogRecord.wEventType);
-	BIGTOHOST16(m_eventLogRecord.wNumStrings);
-	BIGTOHOST16(m_eventLogRecord.wReservedFlags);	
+	BIGTOHOST32(m_usnJrnlRecord.dwRecordLen);
+	BIGTOHOST16(m_usnJrnlRecord.wMajorVer);
+	BIGTOHOST16(m_usnJrnlRecord.wMinorVer);
+	BIGTOHOST64(m_usnJrnlRecord.dwlFileRefNum);
+	BIGTOHOST64(m_usnJrnlRecord.dwlParentFileRefNum);
+	BIGTOHOST64(m_usnJrnlRecord.dwlUSN);
+	BIGTOHOST64(m_usnJrnlRecord.liTimestamp);
+	BIGTOHOST32(m_usnJrnlRecord.dwReason);
+	BIGTOHOST32(m_usnJrnlRecord.dwSrcInfo);
+	BIGTOHOST32(m_usnJrnlRecord.dwSecId);
+	BIGTOHOST32(m_usnJrnlRecord.dwFileAttributes);
+	BIGTOHOST16(m_usnJrnlRecord.wFileNameLen);
+	BIGTOHOST16(m_usnJrnlRecord.wFileNameOffset);
 	
-	if (dwLength > EVENTLOGRECORD_LENGTH) {
-		m_pEventFile->getTwoByteCharString(&m_strSource, m_lOffset + EVENTLOGRECORD_LENGTH, 0, true);
-		m_pEventFile->getTwoByteCharString(&m_strComputer, 0, true);
+	if (dwLength > USN_RECORD_VER2_BASE_LENGTH) {
+		m_pUsnJrnlRecordFile->getTwoByteCharString(&m_strFilename, m_lOffset + USN_RECORD_VER2_BASE_LENGTH, 0, true);
 	} else {
-		DEBUG_ERROR("winEvent::winEvent() Invalid length value.");
+		DEBUG_ERROR("winUsnJrnlRecord::winUsnJrnlRecord() Invalid length value.");
 	}
 }
 
-winEvent::~winEvent() {
+winUsnJrnlRecord::~winUsnJrnlRecord() {
 }
 
 u_int16_t winUsnJrnlRecord::getVersion(u_int16_t* pMajorVer, u_int16_t* pMinorVer) {
@@ -64,146 +62,297 @@ u_int16_t winUsnJrnlRecord::getVersion(u_int16_t* pMajorVer, u_int16_t* pMinorVe
 
 u_int64_t winUsnJrnlRecord::getMFT(u_int64_t* pFileNumber, u_int16_t* pSequence) {
 	if (pFileNumber != NULL && pSequence != NULL) {
-		//*pFileNumber = ...
-		//*pSequence = ...
+		*pFileNumber = m_usnJrnlRecord.dwlFileRefNum >> 16;
+		*pSequence = m_usnJrnlRecord.dwlFileRefNum & 0xFFFF;
 	}
 	return m_usnJrnlRecord.dwlFileRefNum;
 }
 
 u_int64_t winUsnJrnlRecord::getParentMFT(u_int64_t* pParentFileNumber, u_int16_t* pParentSequence) {
 	if (pParentFileNumber != NULL && pParentSequence != NULL) {
-		//*pParentFileNumber = ...
-		//*pParentSequence = ...
+		*pParentFileNumber = m_usnJrnlRecord.dwlFileRefNum >> 16;
+		*pParentSequence = m_usnJrnlRecord.dwlFileRefNum & 0xFFFF;
 	}
 	return m_usnJrnlRecord.dwlParentFileRefNum;
 }
 
-string_t winEvent::getSourceName() {
-	return m_strSource;
-}
-
-string_t winEvent::getComputerName() {
-	return m_strComputer;
-}
-
-string winEvent::getSIDString() {
-	string strSID;
-	
-	SID sid;
-	if (getSID(&sid) == WIN_EVENT_SUCCESS) {
-		unsigned long long ullIdentifierAuthority = (unsigned long long)sid.identifierAuthority.bValue[0] << 40 | (unsigned long long)sid.identifierAuthority.bValue[1] << 32 | (unsigned long long)sid.identifierAuthority.bValue[2] << 24 | (unsigned long long)sid.identifierAuthority.bValue[3] << 16 | (unsigned long long)sid.identifierAuthority.bValue[4] << 8 | (unsigned long long)sid.identifierAuthority.bValue[5];
-
-		ostringstream ostr;
-		ostr << "S-" << (int)sid.bRevision << "-" << ullIdentifierAuthority;
-		for (int i=0; i<sid.bSubAuthorityCount; i++) {
-			ostr << "-" << sid.dwSubAuthority[i];
-		}
-		strSID = ostr.str();
-	} else {
-		DEBUG_ERROR("winEvent::getSIDString() Failure on getSID.");
-	}
-	
-	return strSID;
-}
-
-WIN_EVENT_RV winEvent::getSID(SID* pSID) {
-	WIN_EVENT_RV rv = WIN_EVENT_ERROR;
-	
-	if (pSID) {
-		if (0 < m_eventLogRecord.dwUserSidOffset && m_eventLogRecord.dwUserSidOffset < m_eventLogRecord.dwLength) {
-			if (0 < m_eventLogRecord.dwUserSidLength && m_eventLogRecord.dwUserSidLength < SID_LENGTH) {
-				if (m_pEventFile->getData(pSID, m_eventLogRecord.dwUserSidLength, m_lOffset + m_eventLogRecord.dwUserSidOffset, NULL) >= 0) {
-					BIGTOHOST32(pSID->dwSubAuthority[0]);
-					BIGTOHOST32(pSID->dwSubAuthority[1]);
-					BIGTOHOST32(pSID->dwSubAuthority[2]);
-					BIGTOHOST32(pSID->dwSubAuthority[3]);
-					BIGTOHOST32(pSID->dwSubAuthority[4]);
-					BIGTOHOST32(pSID->dwSubAuthority[5]);
-					BIGTOHOST32(pSID->dwSubAuthority[6]);
-					BIGTOHOST32(pSID->dwSubAuthority[7]);
-					BIGTOHOST32(pSID->dwSubAuthority[8]);
-					BIGTOHOST32(pSID->dwSubAuthority[9]);
-					BIGTOHOST32(pSID->dwSubAuthority[10]);
-					BIGTOHOST32(pSID->dwSubAuthority[11]);
-					BIGTOHOST32(pSID->dwSubAuthority[12]);
-					BIGTOHOST32(pSID->dwSubAuthority[13]);
-					BIGTOHOST32(pSID->dwSubAuthority[14]);
-					rv = WIN_EVENT_SUCCESS;
-				} else {
-					DEBUG_ERROR("winEvent::getSID() Failure on m_pEventFile->getData()");
-				}
-			} else {
-				DEBUG_WARNING("winEvent::getSID() Invalid SID length (" << m_eventLogRecord.dwUserSidLength << ").");
-			}
-		} else {
-			DEBUG_WARNING("winEvent::getSID() Invalid SID offset (" << m_eventLogRecord.dwUserSidOffset << ").");
-		}
-	} else {
-		DEBUG_ERROR("winEvent::getSID() Invalid destination.");
+string_t winUsnJrnlRecord::getReasonStr(u_int32_t* pReasonFlags) {
+	if (pReasonFlags) {
+		*pReasonFlags = m_usnJrnlRecord.dwReason;
 	}
 
-	return rv;
-}
+	string_t strReason;
+	bool bFirstFound = false;
+	u_int32_t dwReason = m_usnJrnlRecord.dwReason;
 
-WIN_EVENT_RV winEvent::getStrings(vector<string_t>* pvStrings) {
-	WIN_EVENT_RV rv = WIN_EVENT_ERROR;
-
-	string_t strtmp;
-	
-	if (pvStrings) {
-		if (m_eventLogRecord.wNumStrings > 0) {
-			if (m_pEventFile->getTwoByteCharString(&strtmp, m_lOffset + m_eventLogRecord.dwStringOffset, 0, true) >= 0) {
-				pvStrings->push_back(strtmp);
-				rv = WIN_EVENT_SUCCESS;
-				for (int i=0; i<m_eventLogRecord.wNumStrings-1; i++) {
-					strtmp.clear();
-					if (m_pEventFile->getTwoByteCharString(&strtmp, 0, true) >= 0) {
-						pvStrings->push_back(strtmp);
-					} else {
-						DEBUG_ERROR("winEvent::getStrings() Failure reading string " << i);
-						rv = WIN_EVENT_ERROR;
-						break;
-					}
-				}
-			} else {
-				DEBUG_ERROR("winEvent::getStrings() Failure reading the first string.");
-			}
-		} else {
-			DEBUG_WARNING("winEvent::getStrings() Number of strings <= 0");
-		}
-	} else {
-		DEBUG_ERROR("winEvent::getStrings() Invalid destination.");
+	if ((dwReason & USN_REASON_BASIC_INFO_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_BASIC_INFO_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_BASIC_INFO_CHANGE;
+	}
+	if ((dwReason & USN_REASON_CLOSE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_CLOSE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_CLOSE;
+	}
+	if ((dwReason & USN_REASON_COMPRESSION_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_COMPRESSION_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_COMPRESSION_CHANGE;
+	}
+	if ((dwReason & USN_REASON_DATA_EXTEND) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_DATA_EXTEND_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_DATA_EXTEND;
+	}
+	if ((dwReason & USN_REASON_DATA_OVERWRITE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_DATA_OVERWRITE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_DATA_OVERWRITE;
+	}
+	if ((dwReason & USN_REASON_DATA_TRUNCATION) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_DATA_TRUNCATION_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_DATA_TRUNCATION;
+	}
+	if ((dwReason & USN_REASON_EA_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_EA_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_EA_CHANGE;
+	}
+	if ((dwReason & USN_REASON_ENCRYPTION_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_ENCRYPTION_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_ENCRYPTION_CHANGE;
+	}
+	if ((dwReason & USN_REASON_FILE_CREATE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_FILE_CREATE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_FILE_CREATE;
+	}
+	if ((dwReason & USN_REASON_FILE_DELETE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_FILE_DELETE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_FILE_DELETE;
+	}
+	if ((dwReason & USN_REASON_HARD_LINK_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_HARD_LINK_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_HARD_LINK_CHANGE;
+	}
+	if ((dwReason & USN_REASON_INDEXABLE_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_INDEXABLE_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_INDEXABLE_CHANGE;
+	}
+	if ((dwReason & USN_REASON_INTEGRITY_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_INTEGRITY_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= ;
+	}
+	if ((dwReason & USN_REASON_NAMED_DATA_EXTEND) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_NAMED_DATA_EXTEND_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_INTEGRITY_CHANGE;
+	}
+	if ((dwReason & USN_REASON_NAMED_DATA_OVERWRITE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_NAMED_DATA_OVERWRITE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_NAMED_DATA_OVERWRITE;
+	}
+	if ((dwReason & USN_REASON_NAMED_DATA_TRUNCATION) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_NAMED_DATA_TRUNCATION_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_NAMED_DATA_TRUNCATION;
+	}
+	if ((dwReason & USN_REASON_OBJECT_ID_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_OBJECT_ID_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_OBJECT_ID_CHANGE;
+	}
+	if ((dwReason & USN_REASON_RENAME_NEW_NAME) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_RENAME_NEW_NAME_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_RENAME_NEW_NAME;
+	}
+	if ((dwReason & USN_REASON_RENAME_OLD_NAME) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_RENAME_OLD_NAME_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_RENAME_OLD_NAME;
+	}
+	if ((dwReason & USN_REASON_REPARSE_POINT_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_REPARSE_POINT_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_REPARSE_POINT_CHANGE;
+	}
+	if ((dwReason & USN_REASON_SECURITY_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_SECURITY_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_SECURITY_CHANGE;
+	}
+	if ((dwReason & USN_REASON_STREAM_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_STREAM_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_STREAM_CHANGE;
+	}
+	if ((dwReason & USN_REASON_TRANSACTED_CHANGE) > 0) {
+		strReason << (bFirstFound ? "," : "") << USN_REASON_TRANSACTED_CHANGE_STR;
+		bFirstFound = true;
+		dwReason ^= USN_REASON_TRANSACTED_CHANGE;
 	}
 
-	return rv;
-}
-
-WIN_EVENT_RV winEvent::getData(char** ppData) {
-	WIN_EVENT_RV rv = WIN_EVENT_ERROR;
-	
-	if (ppData && *ppData == NULL) {
-		if (0 < m_eventLogRecord.dwDataOffset && m_eventLogRecord.dwDataOffset < m_eventLogRecord.dwLength) {
-			if (0 < m_eventLogRecord.dwDataLength) {
-				*ppData = (char*)malloc(m_eventLogRecord.dwDataLength);
-				if (*ppData) {
-					if (m_pEventFile->getData(*ppData, m_eventLogRecord.dwDataLength, m_lOffset + m_eventLogRecord.dwDataOffset, NULL) >= 0) {
-						rv = WIN_EVENT_SUCCESS;
-					} else {
-						DEBUG_ERROR("winEvent::getData() Failure on m_pEventFile->getData().");
-						free(*ppData);
-					}
-				} else {
-					DEBUG_ERROR("winEvent::getData() Failure allocating memory.");
-				}
-			} else {
-				DEBUG_ERROR("winEvent::getData() Invalid data length.");
-			}
-		} else {
-			DEBUG_ERROR("winEvent::getData() Invalid data offset.");
-		}
-	} else {
-		DEBUG_ERROR("winEvent::getData() Invalid destination.");
+	// As they are found, reasons are XOR'd out of dwReason--this value should be zero by the end or there
+	// are unknown/invalid reasons left behind.
+	if (dwReason != 0) {
+		DEBUG_ERROR("winUsnJrnlRecord::getReasonStr() Unknown/invalid reasons found <" << dwReason << ">");
+		strReason << (bFirstFound ? "," : "") << USN_REASON_UNKNOWN_STR;
 	}
 
-	return rv;
+	return strReason;
 }
+
+string_t winUsnJrnlRecord::getSourceInfoStr(u_int32_t* pSourceFlags) {
+	if (pSourceFlags) {
+		*pSourceFlags = m_usnJrnlRecord.dwSrcInfo;
+	}
+
+	string_t str;
+	bool bFirstFound = false;
+	u_int32_t dwSrcInfo = m_usnJrnlRecord.dwSrcInfo;
+
+	if ((dwSrcInfo & USN_SOURCE_AUXILIARY_DATA) > 0) {
+		str << (bFirstFound ? "," : "") << USN_SOURCE_AUXILIARY_DATA_STR;
+		bFirstFound = true;
+		dwSrcInfo ^= USN_SOURCE_AUXILIARY_DATA;
+	}
+	if ((dwSrcInfo & USN_SOURCE_DATA_MANAGEMENT) > 0) {
+		str << (bFirstFound ? "," : "") << USN_SOURCE_DATA_MANAGEMENT_STR;
+		bFirstFound = true;
+		dwSrcInfo ^= USN_SOURCE_DATA_MANAGEMENT;
+	}
+	if ((dwSrcInfo & USN_SOURCE_REPLICATION_MANAGEMENT) > 0) {
+		str << (bFirstFound ? "," : "") << USN_SOURCE_REPLICATION_MANAGEMENT_STR;
+		bFirstFound = true;
+		dwSrcInfo ^= USN_SOURCE_REPLICATION_MANAGEMENT;
+	}
+	if ((dwSrcInfo & USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT) > 0) {
+		str << (bFirstFound ? "," : "") << USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT_STR;
+		bFirstFound = true;
+		dwSrcInfo ^= USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT;
+	}
+
+	// As they are found, sources are XOR'd out of dwSrcInfo--this value should be zero by the end or there
+	// are unknown/invalid sources left behind.
+	if (dwSrcInfo != 0) {
+		DEBUG_ERROR("winUsnJrnlRecord::getSourceInfoStr() Unknown/invalid sources found <" << dwSrcInfo << ">");
+		str << (bFirstFound ? "," : "") << USN_SOURCE_UNKNOWN_STR;
+	}
+
+	return str;
+}
+
+string_t winUsnJrnlRecord::getFileAttributesStr(u_int32_t* pFileAttrFlags) {
+	if (pFileAttrFlags) {
+		*pFileAttrFlags = m_usnJrnlRecord.dwFileAttributes;
+	}
+
+	string_t str;
+	bool bFirstFound = false;
+	u_int32_t dwFileAttributes = m_usnJrnlRecord.dwFileAttributes;
+
+	if ((dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_ARCHIVE_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_ARCHIVE;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_COMPRESSED) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_COMPRESSED_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_COMPRESSED;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_DEVICE) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_DEVICE_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_DEVICE;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_DIRECTORY_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_DIRECTORY;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_ENCRYPTED_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_ENCRYPTED;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_HIDDEN_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_HIDDEN;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_INTEGRITY_STREAM) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_INTEGRITY_STREAM_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_INTEGRITY_STREAM;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_NORMAL) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_NORMAL_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_NORMAL;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_NOT_CONTENT_INDEXED) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_NOT_CONTENT_INDEXED_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_NOT_CONTENT_INDEXED;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_NO_SCRUB_DATA) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_NO_SCRUB_DATA_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_NO_SCRUB_DATA;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_OFFLINE) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_OFFLINE_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_OFFLINE;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_READONLY) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_READONLY_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_READONLY;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_REPARSE_POINT_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_REPARSE_POINT;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_SPARSE_FILE_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_SPARSE_FILE;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_SYSTEM) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_SYSTEM_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_SYSTEM;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_TEMPORARY_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_TEMPORARY;
+	}
+	if ((dwFileAttributes & FILE_ATTRIBUTE_VIRTUAL) > 0) {
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_VIRTUAL_STR;
+		bFirstFound = true;
+		dwFileAttributes ^= FILE_ATTRIBUTE_VIRTUAL;
+	}
+
+	// As they are found, attributes are XOR'd out of dwFileAttributes--this value should be zero by the end or there
+	// are unknown/invalid attributes left behind.
+	if (dwFileAttributes != 0) {
+		DEBUG_ERROR("winUsnJrnlRecord::getFileAttributesStr() Unknown/invalid attributes found <" << dwFileAttributes << ">");
+		str << (bFirstFound ? "," : "") << FILE_ATTRIBUTE_UNKNOWN_STR;
+	}
+
+	return str;
+}
+

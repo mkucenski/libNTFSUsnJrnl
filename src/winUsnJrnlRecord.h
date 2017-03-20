@@ -23,7 +23,7 @@
 #include <vector>
 using namespace std;
 
-typedef enum { WIN_USRJRNL_ERROR, WIN_USRJRNL_SUCCESS } WIN_USRJRNL_RV;
+typedef enum { WIN_USNJRNL_ERROR, WIN_USNJRNL_SUCCESS } WIN_USNJRNL_RV;
 
 class winUsnJrnlRecordFile;
 
@@ -32,27 +32,25 @@ class winUsnJrnlRecord {
 		winUsnJrnlRecord(winUsnJrnlRecordFile* pUsnJrnlRecordFile, char* pData, long lOffset, DWORD dwLength);
 		~winUsnJrnlRecord();
 		
-		u_int64_t	getRecordOffset() 	{ return m_dwlOffset; };
-		u_int32_t	getRecordLength()		{ return m_usnJrnlRecord.dwRecordLen; };
-		u_int16_t	getVersion(u_int32_t* pMajorVer, u_int32_t* pMinorVer);
-		{ return m_usnJrnlRecord.wMajorVer; };
-		u_int64_t	getMFT(u_int64_t* pFileNumber, u_int16_t* pSequence);
-		u_int64_t	getParentMFT(u_int64_t* pParentFileNumber, u_int16_t* pParentSequence);
+		u_int16_t	getVersion(u_int32_t* pMajorVer = NULL, u_int32_t* pMinorVer = NULL);
+		u_int64_t	getMFT(u_int64_t* pFileNumber = NULL, u_int16_t* pSequence = NULL);
+		u_int64_t	getParentMFT(u_int64_t* pParentFileNumber = NULL, u_int16_t* pParentSequence = NULL);
 		u_int64_t	getUSN()					{ return m_usnJrnlRecord.dwlUSN; };
-		u_int64_t	getTimestamp()			{ return m_usrJrnlRecord.liTimestamp; };
+		u_int64_t	getTimestamp()			{ return m_usnJrnlRecord.liTimestamp; };
 		u_int32_t	getReason()				{ return m_usnJrnlRecord.dwReason; };
-		u_int32_t	getSourceInfo()		{ return m_usrJrnlRecord.dwSrcInfo; };
-		u_int32_t	getSecurityID ()		{ return m_usrJrnlRecord.dwSecId; };
-		u_int32_t	getFileAttributes()	{ return m_usrJrnlRecord.dwFileAttributes; };
-		u_int16_t	getFilenameLen()		{ return m_usrJrnlRecord.wFileNameLen; };
-		u_int16_t	getFilenameOffset()	{ return m_usrJrnlRecord.wFileNameOffset; };
+		string_t		getReasonStr(u_int32_t* pReasonFlags = NULL);
+		u_int32_t	getSourceInfo()		{ return m_usnJrnlRecord.dwSrcInfo; };
+		string_t		getSourceInfoStr(u_int32_t* pSourceFlags = NULL);
+		u_int32_t	getSecurityID ()		{ return m_usnJrnlRecord.dwSecId; };
+		u_int32_t	getFileAttributes()	{ return m_usnJrnlRecord.dwFileAttributes; };
+		string_t		getFileAttributesStr(u_int32_t* pFileAttrFlags = NULL);
 		string_t		getFilename() 			{ return m_strFilename};
 
 	private:
-		winEventFile*		m_pUsnJrnlRecordFile;
-		u_int64 				m_dwlOffset;
-		USN_RECORD_VER2	m_usnJrnlRecord;
-		string_t				m_strFilename;
+		winUsnJrnlRecordFile*	m_pUsnJrnlRecordFile;
+		u_int64_t					m_dwlOffset;
+		USN_RECORD_VER2			m_usnJrnlRecord;
+		string_t						m_strFilename;
 };
 
-#endif //_WINUSRJRNLRECORD_H_
+#endif //_WINUSNJRNLRECORD_H_

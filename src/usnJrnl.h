@@ -83,50 +83,116 @@ typedef struct _USN_RECORD_VER2 {
 // Type: $DATA (128-1)   Name: N/A   Non-Resident   size: 2621440  init_size: 2490368
 
 // https://msdn.microsoft.com/en-us/library/aa365722(v=vs.85).aspx
-#define USN_REASON_BASIC_INFO_CHANGE		0x00008000	//A user has either changed one or more file or directory
-																		//attributes (for example, the read-only, hidden, system, archive,
-																		//or sparse attribute), or one or more time stamps.
-#define USN_REASON_CLOSE						0x80000000	//The file or directory is closed.
-#define USN_REASON_COMPRESSION_CHANGE		0x00020000	//The compression state of the file or directory is changed from
-																		//or to compressed.
-#define USN_REASON_DATA_EXTEND				0x00000002	//The file or directory is extended (added to).
-#define USN_REASON_DATA_OVERWRITE			0x00000001	//The data in the file or directory is overwritten.
-#define USN_REASON_DATA_TRUNCATION			0x00000004	//The file or directory is truncated.
-#define USN_REASON_EA_CHANGE					0x00000400	//The user made a change to the extended attributes of a file or
-																		//directory.
-#define USN_REASON_ENCRYPTION_CHANGE		0x00040000	//The file or directory is encrypted or decrypted.
-#define USN_REASON_FILE_CREATE				0x00000100	//The file or directory is created for the first time.
-#define USN_REASON_FILE_DELETE				0x00000200	//The file or directory is deleted.
-#define USN_REASON_HARD_LINK_CHANGE			0x00010000	//An NTFS file system hard link is added to or removed from the
-																		//file or directory.
-#define USN_REASON_INDEXABLE_CHANGE			0x00004000	//A user changes the FILE_ATTRIBUTE_NOT_CONTENT_INDEXED attribute.
-#define USN_REASON_INTEGRITY_CHANGE			0x00800000	//A user changed the state of the FILE_ATTRIBUTE_INTEGRITY_STREAM
-																		//attribute for the given stream.
-#define USN_REASON_NAMED_DATA_EXTEND		0x00000020	//The one or more named data streams for a file are extended
-																		//(added to).
-#define USN_REASON_NAMED_DATA_OVERWRITE	0x00000010	//The data in one or more named data streams for a file is
-																		//overwritten.
-#define USN_REASON_NAMED_DATA_TRUNCATION	0x00000040	//The one or more named data streams for a file is truncated.
-#define USN_REASON_OBJECT_ID_CHANGE			0x00080000	//The object identifier of a file or directory is changed.
-#define USN_REASON_RENAME_NEW_NAME			0x00002000	//A file or directory is renamed, and the file name in the
-																		//USN_RECORD_V2 structure is the new name.
-#define USN_REASON_RENAME_OLD_NAME			0x00001000	//The file or directory is renamed, and the file name in the
-																		//USN_RECORD_V2 structure is the previous name.
-#define USN_REASON_REPARSE_POINT_CHANGE	0x00100000	//The reparse point that is contained in a file or directory is
-																		//changed, or a reparse point is added to or deleted from a file
-																		//or directory.
-#define USN_REASON_SECURITY_CHANGE			0x00000800	//A change is made in the access rights to a file or directory.
-#define USN_REASON_STREAM_CHANGE				0x00200000	//A named stream is added to or removed from a file, or a named
-																		//stream is renamed.
-#define USN_REASON_TRANSACTED_CHANGE		0x00400000	//The given stream is modified through a TxF transaction.
+#define USN_REASON_BASIC_INFO_CHANGE_STR						"USN_REASON_BASIC_INFO_CHANGE"
+#define USN_REASON_BASIC_INFO_CHANGE							0x00008000
+#define USN_REASON_BASIC_INFO_CHANGE_DESCR					"A user has either changed one or more file or directory attributes (for example, the read-only, hidden, system, archive, or sparse attribute), or one or more time stamps."
 
-#define USN_SOURCE_AUXILIARY_DATA			0x00000002	//The operation adds a private data stream to a file or directory.
-#define USN_SOURCE_DATA_MANAGEMENT			0x00000001	//The operation provides information about a change to the file
-																		//or directory made by the operating system.
-#define USN_SOURCE_REPLICATION_MANAGEMENT	0x00000004	//The operation is modifying a file to match the contents of the
-																		//same file which exists in another member of the replica set.
-#define USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT	0x00000008	//The operation is modifying a file on client systems to
-																					//match the contents of the same file that exists in the
-																					//cloud.
+#define USN_REASON_CLOSE_STR										"USN_REASON_CLOSE"
+#define USN_REASON_CLOSE											0x80000000
+#define USN_REASON_CLOSE_DESCR									"The file or directory is closed."
+
+#define USN_REASON_COMPRESSION_CHANGE_STR						"USN_REASON_COMPRESSION_CHANGE"
+#define USN_REASON_COMPRESSION_CHANGE							0x00020000
+#define USN_REASON_COMPRESSION_CHANGE_DESCR					"The compression state of the file or directory is changed from or to compressed."
+
+#define USN_REASON_DATA_EXTEND_STR								"USN_REASON_DATA_EXTEND"
+#define USN_REASON_DATA_EXTEND									0x00000002
+#define USN_REASON_DATA_EXTEND_DESCR							"The file or directory is extended (added to)."
+
+#define USN_REASON_DATA_OVERWRITE_STR							"USN_REASON_DATA_OVERWRITE"
+#define USN_REASON_DATA_OVERWRITE								0x00000001
+#define USN_REASON_DATA_OVERWRITE_DESCR 						"The data in the file or directory is overwritten."
+
+#define USN_REASON_DATA_TRUNCATION_STR							"USN_REASON_DATA_TRUNCATION"
+#define USN_REASON_DATA_TRUNCATION								0x00000004
+#define USN_REASON_DATA_TRUNCATION_DESCR						"The file or directory is truncated."
+
+#define USN_REASON_EA_CHANGE_STR									"USN_REASON_EA_CHANGE"
+#define USN_REASON_EA_CHANGE										0x00000400
+#define USN_REASON_EA_CHANGE_DESCR								"The user made a change to the extended attributes of a file or directory."
+
+#define USN_REASON_ENCRYPTION_CHANGE_STR						"USN_REASON_ENCRYPTION_CHANGE"
+#define USN_REASON_ENCRYPTION_CHANGE							0x00040000
+#define USN_REASON_ENCRYPTION_CHANGE_DESCR					"The file or directory is encrypted or decrypted."
+
+#define USN_REASON_FILE_CREATE_STR								"USN_REASON_FILE_CREATE"
+#define USN_REASON_FILE_CREATE									0x00000100
+#define USN_REASON_FILE_CREATE_DESCR							"The file or directory is created for the first time."
+
+#define USN_REASON_FILE_DELETE_STR								"USN_REASON_FILE_DELETE"
+#define USN_REASON_FILE_DELETE									0x00000200
+#define USN_REASON_FILE_DELETE_DESCR							"The file or directory is deleted."
+
+#define USN_REASON_HARD_LINK_CHANGE_STR						"USN_REASON_HARD_LINK_CHANGE"
+#define USN_REASON_HARD_LINK_CHANGE								0x00010000
+#define USN_REASON_HARD_LINK_CHANGE_DESCR						"An NTFS file system hard link is added to or removed from the file or directory."
+
+#define USN_REASON_INDEXABLE_CHANGE_STR						"USN_REASON_INDEXABLE_CHANGE"
+#define USN_REASON_INDEXABLE_CHANGE								0x00004000
+#define USN_REASON_INDEXABLE_CHANGE_DESCR						"A user changes the FILE_ATTRIBUTE_NOT_CONTENT_INDEXED attribute."
+
+#define USN_REASON_INTEGRITY_CHANGE_STR						"USN_REASON_INTEGRITY_CHANGE"
+#define USN_REASON_INTEGRITY_CHANGE								0x00800000
+#define USN_REASON_INTEGRITY_CHANGE_DESCR						"A user changed the state of the FILE_ATTRIBUTE_INTEGRITY_STREAM attribute for the given stream."
+
+#define USN_REASON_NAMED_DATA_EXTEND_STR						"USN_REASON_NAMED_DATA_EXTEND"
+#define USN_REASON_NAMED_DATA_EXTEND							0x00000020
+#define USN_REASON_NAMED_DATA_EXTEND_DESCR					"The one or more named data streams for a file are extended (added to)."
+
+#define USN_REASON_NAMED_DATA_OVERWRITE_STR					"USN_REASON_NAMED_DATA_OVERWRITE"
+#define USN_REASON_NAMED_DATA_OVERWRITE						0x00000010
+#define USN_REASON_NAMED_DATA_OVERWRITE_DESCR				"The data in one or more named data streams for a file is overwritten."
+
+#define USN_REASON_NAMED_DATA_TRUNCATION_STR					"USN_REASON_NAMED_DATA_TRUNCATION"
+#define USN_REASON_NAMED_DATA_TRUNCATION						0x00000040
+#define USN_REASON_NAMED_DATA_TRUNCATION_DESCR				"The one or more named data streams for a file is truncated."
+
+#define USN_REASON_OBJECT_ID_CHANGE_STR						"USN_REASON_OBJECT_ID_CHANGE"
+#define USN_REASON_OBJECT_ID_CHANGE								0x00080000
+#define USN_REASON_OBJECT_ID_CHANGE_DESCR						"The object identifier of a file or directory is changed."
+
+#define USN_REASON_RENAME_NEW_NAME_STR							"USN_REASON_RENAME_NEW_NAME"
+#define USN_REASON_RENAME_NEW_NAME								0x00002000
+#define USN_REASON_RENAME_NEW_NAME_DESCR						"A file or directory is renamed, and the file name in the USN_RECORD_V2 structure is the new name."
+
+#define USN_REASON_RENAME_OLD_NAME_STR							"USN_REASON_RENAME_OLD_NAME"
+#define USN_REASON_RENAME_OLD_NAME								0x00001000
+#define USN_REASON_RENAME_OLD_NAME_DESCR						"The file or directory is renamed, and the file name in the USN_RECORD_V2 structure is the previous name."
+
+#define USN_REASON_REPARSE_POINT_CHANGE_STR					"USN_REASON_REPARSE_POINT_CHANGE"
+#define USN_REASON_REPARSE_POINT_CHANGE						0x00100000
+#define USN_REASON_REPARSE_POINT_CHANGE_DESCR				"The reparse point that is contained in a file or directory is changed, or a reparse point is added to or deleted from a file or directory."
+
+#define USN_REASON_SECURITY_CHANGE_STR							"USN_REASON_SECURITY_CHANGE"
+#define USN_REASON_SECURITY_CHANGE								0x00000800
+#define USN_REASON_SECURITY_CHANGE_DESCR						"A change is made in the access rights to a file or directory."
+
+#define USN_REASON_STREAM_CHANGE_STR							"USN_REASON_STREAM_CHANGE"
+#define USN_REASON_STREAM_CHANGE									0x00200000
+#define USN_REASON_STREAM_CHANGE_DESCR							"A named stream is added to or removed from a file, or a named stream is renamed."
+
+#define USN_REASON_TRANSACTED_CHANGE_STR						"USN_REASON_TRANSACTED_CHANGE"
+#define USN_REASON_TRANSACTED_CHANGE							0x00400000
+#define USN_REASON_TRANSACTED_CHANGE_DESCR					"The given stream is modified through a TxF transaction."
+
+#define USN_REASON_UNKNOWN_STR									"USN_REASON_UNKNOWN"
+
+#define USN_SOURCE_AUXILIARY_DATA_STR							"USN_SOURCE_AUXILIARY_DATA"
+#define USN_SOURCE_AUXILIARY_DATA								0x00000002
+#define USN_SOURCE_AUXILIARY_DATA_DESCR						"The operation adds a private data stream to a file or directory."
+
+#define USN_SOURCE_DATA_MANAGEMENT_STR							"USN_SOURCE_DATA_MANAGEMENT"
+#define USN_SOURCE_DATA_MANAGEMENT								0x00000001
+#define USN_SOURCE_DATA_MANAGEMENT_DESCR						"The operation provides information about a change to the file or directory made by the operating system."
+
+#define USN_SOURCE_REPLICATION_MANAGEMENT_STR				"USN_SOURCE_REPLICATION_MANAGEMENT"
+#define USN_SOURCE_REPLICATION_MANAGEMENT						0x00000004
+#define USN_SOURCE_REPLICATION_MANAGEMENT_DESCR				"The operation is modifying a file to match the contents of the same file which exists in another member of the replica set."
+
+#define USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT_STR		"USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT"
+#define USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT			0x00000008
+#define USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT_DESCR	"The operation is modifying a file on client systems to match the contents of the same file that exists in the cloud."
+
+#define USN_SOURCE_UNKNOWN_STR									"USN_SOURCE_UNKOWN"
 
 #endif //_USNJRNL_H_
