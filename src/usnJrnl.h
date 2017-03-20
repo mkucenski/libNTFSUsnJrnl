@@ -25,6 +25,7 @@ typedef struct _USN_RECORD_VER2 {
   												//	(per Carrier p.277 MFT = 48bits + 16bit sequence number)
 	DWORDLONG		dwlParentFileRefNum; // 17: 3940 0000 0000 1700 (0x4039 = 16441 (parent inode) + "sequence" 23/0x17)
 	DWORDLONG 		usn;					// 25: 48a5 6e1e 0100 0000
+												// (this should be the same as the address of this record in the $J stream)
 	LARGE_INTEGER	liTimestamp;		// 33: e7e1 6e0b cbac d101
 	DWORD				dwReason;			// 41: 0100 0080
 	DWORD				dwSrcInfo;			// 45: 0000 0000
