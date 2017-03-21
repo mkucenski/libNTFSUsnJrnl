@@ -16,7 +16,6 @@
 #define _WINUSNJRNLRECORD_H_
 
 #include "usnJrnl.h"
-#include "misc/stringType.h"
 
 #include <iostream>
 #include <string>
@@ -25,32 +24,32 @@ using namespace std;
 
 typedef enum { WIN_USNJRNL_ERROR, WIN_USNJRNL_SUCCESS } WIN_USNJRNL_RV;
 
-class winUsnJrnlRecordFile;
+class winUsnJrnlRecordsFile;
 
 class winUsnJrnlRecord {
 	public:
-		winUsnJrnlRecord(winUsnJrnlRecordFile* pUsnJrnlRecordFile, char* pData, long lOffset, DWORD dwLength);
+		winUsnJrnlRecord(winUsnJrnlRecordsFile* pUsnJrnlRecordsFile, char* pData, long lOffset, DWORD dwLength);
 		~winUsnJrnlRecord();
 		
-		u_int16_t	getVersion(u_int32_t* pMajorVer = NULL, u_int32_t* pMinorVer = NULL);
+		u_int16_t	getVersion(u_int16_t* pMajorVer = NULL, u_int16_t* pMinorVer = NULL);
 		u_int64_t	getMFT(u_int64_t* pFileNumber = NULL, u_int16_t* pSequence = NULL);
 		u_int64_t	getParentMFT(u_int64_t* pParentFileNumber = NULL, u_int16_t* pParentSequence = NULL);
 		u_int64_t	getUSN()					{ return m_usnJrnlRecord.dwlUSN; };
 		u_int64_t	getTimestamp()			{ return m_usnJrnlRecord.liTimestamp; };
 		u_int32_t	getReason()				{ return m_usnJrnlRecord.dwReason; };
-		string_t		getReasonStr(u_int32_t* pReasonFlags = NULL);
+		string		getReasonStr(u_int32_t* pReasonFlags = NULL, u_int32_t* pUnknownReasonFlags = NULL);
 		u_int32_t	getSourceInfo()		{ return m_usnJrnlRecord.dwSrcInfo; };
-		string_t		getSourceInfoStr(u_int32_t* pSourceFlags = NULL);
+		string		getSourceInfoStr(u_int32_t* pSourceFlags = NULL, u_int32_t* pUnknownSourceFlags = NULL);
 		u_int32_t	getSecurityID ()		{ return m_usnJrnlRecord.dwSecId; };
 		u_int32_t	getFileAttributes()	{ return m_usnJrnlRecord.dwFileAttributes; };
-		string_t		getFileAttributesStr(u_int32_t* pFileAttrFlags = NULL);
-		string_t		getFilename() 			{ return m_strFilename};
+		string		getFileAttributesStr(u_int32_t* pFileAttrFlags = NULL, u_int32_t* pUnknownFileAttrFlags = NULL);
+		string		getFilename() 			{ return m_strFilename; };
 
 	private:
-		winUsnJrnlRecordFile*	m_pUsnJrnlRecordFile;
-		u_int64_t					m_dwlOffset;
+		winUsnJrnlRecordsFile*	m_pUsnJrnlRecordsFile;
+		u_int64_t					m_uiOffset;
 		USN_RECORD_VER2			m_usnJrnlRecord;
-		string_t						m_strFilename;
+		string						m_strFilename;
 };
 
 #endif //_WINUSNJRNLRECORD_H_

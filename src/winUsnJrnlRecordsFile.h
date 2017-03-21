@@ -16,25 +16,22 @@
 #define _WINUSNJRNLFILE_H_
 
 #include "winUsnJrnlRecord.h"
-#include "winUsnJrnlCursor.h"
 #include "libbinData/src/binDataFile.h"
 
 #include <string>
 using namespace std;
 
-class winUsnJrnlFile : public binDataFile {
+class winUsnJrnlRecordsFile : public binDataFile {
 	friend class winUsnJrnlRecord;
-	friend class winUsnJrnlCursor;
 	
 	public:
-		winUsnJrnlFile(string strFilename);
-		~winUsnJrnlFile();
+		winUsnJrnlRecordsFile(string strFilename);
+		~winUsnJrnlRecordsFile();
 		
-		WIN_USNJRNL_RV getCursor(winUsnJrnlCursor** ppCursor);		
 		WIN_USNJRNL_RV getNextRecord(winUsnJrnlRecord** ppUsnJrnlRecord);
 	
 	private:
-		long m_lNextRecordPos;
+		u_int32_t m_uiDataStartPos;
 };
 
 #endif //_WINUSNJRNLFILE_H_
