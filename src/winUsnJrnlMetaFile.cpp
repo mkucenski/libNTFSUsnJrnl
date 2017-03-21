@@ -58,12 +58,6 @@ winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile() {
 	DEBUG_INFO("winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile()");
 }
 
-WIN_USNJRNL_RV winUsnJrnlRecordsFile::getCursor(winUsnJrnlRecordsFile** ppCursor) {
-	WIN_USNJRNL_RV rv = WIN_USNJRNL_ERROR;
-	
-	return rv;
-}
-		
 WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnlRecord) {
 	WIN_USNJRNL_RV rv = WIN_USNJRNL_ERROR;
 		
@@ -85,9 +79,9 @@ WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnl
 		if (getData(&dwLength, sizeof(DWORD), m_lNextRecordPos, NULL) >= 0 && 
 			 getData(&wMajorVer, sizeof(WORD), NULL) >= 0 &&
 			 getData(&wMinorVer, sizeof(WORD), NULL) >= 0) {
-			BIGTOHOST32(dwLength);
-			BIGTOHOST32(wMajorVer);
-			BIGTOHOST32(wMinorVer);
+			LITTLETOHOST32(dwLength);
+			LITTLETOHOST32(wMajorVer);
+			LITTLETOHOST32(wMinorVer);
 			
 			// For event records, there is a clear header ID that can be searched for. In this case, I am searching DWORD by DWORD for that
 			// header. For UsnJrnl records, there is no clear header. The first DWORD is the length of the record. However, the $J file
@@ -100,7 +94,7 @@ WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnl
 				DEBUG_INFO("winEventFile::getNextRecord() Next record was not found in the expected location.  Searching...");
 				while (!bFound) {
 					if (getData(&dwHeaderID, sizeof(DWORD), NULL) >= 0) {
-						BIGTOHOST32(dwHeaderID);
+						LITTLETOHOST32(dwHeaderID);
 						
 						if (dwHeaderID == EVENTLOGRECORD_HEADER_ID) {
 							DEBUG_INFO("winEventFile::getNextRecord() Next record found at offset: " << offset() - 8 << " (diff = " << ((offset() - 8) - m_lNextRecordPos) << ")");
