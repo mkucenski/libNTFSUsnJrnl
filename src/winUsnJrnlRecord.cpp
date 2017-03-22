@@ -20,10 +20,11 @@
 #include <sstream>
 using namespace std;
 
-winUsnJrnlRecord::winUsnJrnlRecord(winUsnJrnlRecordsFile* pUsnJrnlRecordsFile, char* pData, long lOffset, DWORD dwLength)
-		:	m_pUsnJrnlRecordsFile(pUsnJrnlRecordsFile),
-			m_uiOffset(lOffset) {
-
+winUsnJrnlRecord::winUsnJrnlRecord(USN_RECORD_VER2 usnJrnlRecord, string strFilename, u_int64_t uiOffset)
+		:	m_usnJrnlRecord(usnJrnlRecord),
+		  	m_strFilename(strFilename),
+			m_uiOffset(uiOffset)  {
+/*
 	memset(&m_usnJrnlRecord, 0, USN_RECORD_VER2_BASE_LENGTH);	
 	memcpy(&m_usnJrnlRecord, pData, (dwLength < USN_RECORD_VER2_BASE_LENGTH ? dwLength : USN_RECORD_VER2_BASE_LENGTH));
 	
@@ -42,10 +43,10 @@ winUsnJrnlRecord::winUsnJrnlRecord(winUsnJrnlRecordsFile* pUsnJrnlRecordsFile, c
 	LITTLETOHOST16(m_usnJrnlRecord.wFileNameOffset);
 	
 	if (dwLength > USN_RECORD_VER2_BASE_LENGTH) {
-		m_pUsnJrnlRecordsFile->getTwoByteCharString(&m_strFilename, m_uiOffset + USN_RECORD_VER2_BASE_LENGTH, 0, true);
+		//m_pUsnJrnlRecordsFile->getTwoByteCharString(&m_strFilename, m_uiOffset + USN_RECORD_VER2_BASE_LENGTH, 0, true);
 	} else {
 		DEBUG_ERROR("winUsnJrnlRecord::winUsnJrnlRecord() Invalid length value.");
-	}
+	}a*/
 }
 
 winUsnJrnlRecord::~winUsnJrnlRecord() {
@@ -65,12 +66,12 @@ u_int64_t winUsnJrnlRecord::getMFT(u_int64_t* pFileNumber, u_int16_t* pSequence)
 	return m_usnJrnlRecord.dwlFileRefNum;
 }
 
-u_int64_t winUsnJrnlRecord::getParentMFT(u_int64_t* pParentFileNumber, u_int16_t* pParentSequence) {
-	if (pParentFileNumber != NULL && pParentSequence != NULL) {
-		*pParentFileNumber = m_usnJrnlRecord.dwlFileRefNum >> 16;
-		*pParentSequence = m_usnJrnlRecord.dwlFileRefNum & 0xFFFF;
+u_int64_t winUsnJrnlRecord::getParentMFT(u_int64_t* pParentNumber, u_int16_t* pParentSequence) {
+	if (pParentNumber != NULL && pParentSequence != NULL) {
+		*pParentNumber = m_usnJrnlRecord.dwlParentRefNum >> 16;
+		*pParentSequence = m_usnJrnlRecord.dwlParentRefNum & 0xFFFF;
 	}
-	return m_usnJrnlRecord.dwlParentFileRefNum;
+	return m_usnJrnlRecord.dwlParentRefNum;
 }
 
 string winUsnJrnlRecord::getReasonStr(u_int32_t* pReasonFlags, u_int32_t* pUnknownReasonFlags) {
@@ -80,9 +81,9 @@ string winUsnJrnlRecord::getReasonStr(u_int32_t* pReasonFlags, u_int32_t* pUnkno
 }
 
 string winUsnJrnlRecord::getSourceInfoStr(u_int32_t* pSourceFlags, u_int32_t* pUnknownSourceFlags) {
-	if (pSourceFlags) { *pSourceFlags = m_usnJrnlRecord.dwSrcInfo; }
-	if (pUnknownSourceFlags) { *pUnknownSourceFlags = findUnknownCodes(m_usnJrnlRecord.dwSrcInfo, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES)); }
-	return getMessages(m_usnJrnlRecord.dwSrcInfo, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES));
+	if (pSourceFlags) { *pSourceFlags = m_usnJrnlRecord.dwSourceInfo; }
+	if (pUnknownSourceFlags) { *pUnknownSourceFlags = findUnknownCodes(m_usnJrnlRecord.dwSourceInfo, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES)); }
+	return getMessages(m_usnJrnlRecord.dwSourceInfo, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES));
 }
 
 string winUsnJrnlRecord::getFileAttributesStr(u_int32_t* pFileAttrFlags, u_int32_t* pUnknownFileAttrFlags) {

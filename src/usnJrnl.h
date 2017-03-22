@@ -24,15 +24,15 @@ typedef struct _USN_RECORD_VER2 {
 	WORD				wMinorVer;				// 6:  0000
 	DWORDLONG		dwlFileRefNum;			// 8:  6340 0000 0000 1100 	(0x4063 = 16483 (inode) + "sequence" 17/0x11)
   													//									(per Carrier p.277 MFT = 48bits + 16bit sequence number)
-	DWORDLONG		dwlParentFileRefNum; // 16: 3940 0000 0000 1700 (0x4039 = 16441 (parent inode) + "sequence" 23/0x17)
+	DWORDLONG		dwlParentRefNum; 		// 16: 3940 0000 0000 1700 (0x4039 = 16441 (parent inode) + "sequence" 23/0x17)
 	DWORDLONG 		dwlUSN;					// 24: 48a5 6e1e 0100 0000	(this should be the same as the address of this record in the $J stream)
-	LARGE_INTEGER	liTimestamp;			// 32: e7e1 6e0b cbac d101					-> 131075852240609767 (2016-May-13 03:53:44 ???)
+	DWORDLONG		dwlTimestamp;			// 32: e7e1 6e0b cbac d101					-> 131075852240609767 (2016-May-13 03:53:44 ???)
 	DWORD				dwReason;				// 40: 0100 0080
-	DWORD				dwSrcInfo;				// 44: 0000 0000
-	DWORD				dwSecId; 				// 48: 0000 0000 				??? SID's are larger than a DWORD, what is this?
+	DWORD				dwSourceInfo;			// 44: 0000 0000
+	DWORD				dwSecurityID; 			// 48: 0000 0000 				??? SID's are larger than a DWORD, what is this?
 	DWORD				dwFileAttributes;		// 52: 2620 0000
-	WORD				wFileNameLen;			// 56: 1400										-> 20 (chars)
-	WORD				wFileNameOffset;		// 58: 3c00										-> 60 (offset)
+	WORD				wFilenameLen;			// 56: 1400										-> 20 (chars)
+	WORD				wFilenameOffset;		// 58: 3c00										-> 60 (offset)
 	//WCHAR			wchFileName;			// 60:           4e00 5400     (N.T.)
 													// 64: 5500 5300 4500 5200 (U.S.E.R.)
 													// 72: 2e00 4400 4100 5400 (..D.A.T.)

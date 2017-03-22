@@ -31,7 +31,7 @@ class winUsnJrnlRecordsFile : public binDataFile {
 		WIN_USNJRNL_RV getNextRecord(winUsnJrnlRecord** ppUsnJrnlRecord);
 	
 	private:
-		u_int32_t m_uiDataStartPos;
+		u_int32_t m_uiDataPos;
 };
 
 #endif //_WINUSNJRNLFILE_H_

@@ -28,25 +28,25 @@ class winUsnJrnlRecordsFile;
 
 class winUsnJrnlRecord {
 	public:
-		winUsnJrnlRecord(winUsnJrnlRecordsFile* pUsnJrnlRecordsFile, char* pData, long lOffset, DWORD dwLength);
+		winUsnJrnlRecord(USN_RECORD_VER2 usnJrnlRecord, string strFilename, u_int64_t uiOffset);
 		~winUsnJrnlRecord();
 		
 		u_int16_t	getVersion(u_int16_t* pMajorVer = NULL, u_int16_t* pMinorVer = NULL);
 		u_int64_t	getMFT(u_int64_t* pFileNumber = NULL, u_int16_t* pSequence = NULL);
-		u_int64_t	getParentMFT(u_int64_t* pParentFileNumber = NULL, u_int16_t* pParentSequence = NULL);
+		u_int64_t	getParentMFT(u_int64_t* pParentNumber = NULL, u_int16_t* pParentSequence = NULL);
 		u_int64_t	getUSN()					{ return m_usnJrnlRecord.dwlUSN; };
-		u_int64_t	getTimestamp()			{ return m_usnJrnlRecord.liTimestamp; };
+		u_int64_t	getTimestamp()			{ return m_usnJrnlRecord.dwlTimestamp; };
 		u_int32_t	getReason()				{ return m_usnJrnlRecord.dwReason; };
 		string		getReasonStr(u_int32_t* pReasonFlags = NULL, u_int32_t* pUnknownReasonFlags = NULL);
-		u_int32_t	getSourceInfo()		{ return m_usnJrnlRecord.dwSrcInfo; };
+		u_int32_t	getSourceInfo()		{ return m_usnJrnlRecord.dwSourceInfo; };
 		string		getSourceInfoStr(u_int32_t* pSourceFlags = NULL, u_int32_t* pUnknownSourceFlags = NULL);
-		u_int32_t	getSecurityID ()		{ return m_usnJrnlRecord.dwSecId; };
+		u_int32_t	getSecurityID ()		{ return m_usnJrnlRecord.dwSecurityID; };
 		u_int32_t	getFileAttributes()	{ return m_usnJrnlRecord.dwFileAttributes; };
 		string		getFileAttributesStr(u_int32_t* pFileAttrFlags = NULL, u_int32_t* pUnknownFileAttrFlags = NULL);
 		string		getFilename() 			{ return m_strFilename; };
 
 	private:
-		winUsnJrnlRecordsFile*	m_pUsnJrnlRecordsFile;
+		//winUsnJrnlRecordsFile*	m_pUsnJrnlRecordsFile;
 		u_int64_t					m_uiOffset;
 		USN_RECORD_VER2			m_usnJrnlRecord;
 		string						m_strFilename;
