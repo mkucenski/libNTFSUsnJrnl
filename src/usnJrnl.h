@@ -19,21 +19,21 @@
 #include "misc/coded-message.h"
 
 typedef struct _USN_RECORD_VER2 {
-	DWORD				dwRecordLen;			// 0:  5000 0000								-> 80 (total length)
-	WORD				wMajorVer;				// 4:  0200
-	WORD				wMinorVer;				// 6:  0000
-	DWORDLONG		dwlFileRefNum;			// 8:  6340 0000 0000 1100 	(0x4063 = 16483 (inode) + "sequence" 17/0x11)
+	DWORD				cRecordLen;				// 0:  5000 0000								-> 80 (total length)
+	WORD				vMajorVer;				// 4:  0200
+	WORD				vMinorVer;				// 6:  0000
+	DWORDLONG		idFileRefNum;			// 8:  6340 0000 0000 1100 	(0x4063 = 16483 (inode) + "sequence" 17/0x11)
   													//									(per Carrier p.277 MFT = 48bits + 16bit sequence number)
-	DWORDLONG		dwlParentRefNum; 		// 16: 3940 0000 0000 1700 (0x4039 = 16441 (parent inode) + "sequence" 23/0x17)
-	DWORDLONG 		dwlUSN;					// 24: 48a5 6e1e 0100 0000	(this should be the same as the address of this record in the $J stream)
-	DWORDLONG		dwlTimestamp;			// 32: e7e1 6e0b cbac d101					-> 131075852240609767 (2016-May-13 03:53:44 ???)
-	DWORD				dwReason;				// 40: 0100 0080
-	DWORD				dwSourceInfo;			// 44: 0000 0000
-	DWORD				dwSecurityID; 			// 48: 0000 0000 				??? SID's are larger than a DWORD, what is this?
-	DWORD				dwFileAttributes;		// 52: 2620 0000
-	WORD				wFilenameLen;			// 56: 1400										-> 20 (chars)
-	WORD				wFilenameOffset;		// 58: 3c00										-> 60 (offset)
-	//WCHAR			wchFileName;			// 60:           4e00 5400     (N.T.)
+	DWORDLONG		idParentRefNum; 		// 16: 3940 0000 0000 1700 (0x4039 = 16441 (parent inode) + "sequence" 23/0x17)
+	DWORDLONG 		idUSN;					// 24: 48a5 6e1e 0100 0000	(this should be the same as the address of this record in the $J stream)
+	DWORDLONG		dtmTimestamp;			// 32: e7e1 6e0b cbac d101					-> 131075852240609767 (2016-May-13 03:53:44 ???)
+	DWORD				fxReasons;				// 40: 0100 0080
+	DWORD				fxSources;				// 44: 0000 0000
+	DWORD				idSecurityID; 			// 48: 0000 0000 				??? SID's are larger than a DWORD, what is this?
+	DWORD				fxFileAttrs;			// 52: 2620 0000
+	WORD				cFilenameLen;			// 56: 1400										-> 20 (chars)
+	WORD				posFilename;			// 58: 3c00										-> 60 (offset)
+	//WCHAR			szFileName;				// 60:           4e00 5400     (N.T.)
 													// 64: 5500 5300 4500 5200 (U.S.E.R.)
 													// 72: 2e00 4400 4100 5400 (..D.A.T.)
 													// 80: 

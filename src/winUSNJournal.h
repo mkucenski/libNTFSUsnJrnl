@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _WINUSNJRNLFILE_H_
-#define _WINUSNJRNLFILE_H_
+#ifndef _WINUSNJOURNAL_H_
+#define _WINUSNJOURNAL_H_
 
-#include "winUsnJrnlRecord.h"
+#include "winUSNRecord.h"
+
 #include "libbinData/src/binDataFile.h"
-
 #include <string>
 using namespace std;
 
-class winUsnJrnlRecordsFile : public binDataFile {
-	friend class winUsnJrnlRecord;
+class winUSNJournal: public binDataFile {
+	friend class winUSNRecord;
 	
 	public:
-		winUsnJrnlRecordsFile(string strFilename);
-		~winUsnJrnlRecordsFile();
+		winUSNJournal(string strFilename);
+		~winUSNJournal();
 		
-		WIN_USNJRNL_RV getNextRecord(winUsnJrnlRecord** ppUsnJrnlRecord);
+		WIN_USNJRNL_RV getNextRecord(winUSNRecord** ppCusnRecord);
 	
 	private:
-		u_int32_t m_uiDataPos;
+		u_int32_t m_posFileData;
 };
 
-#endif //_WINUSNJRNLFILE_H_
+#endif //_WINUSNJOURNAL_H_

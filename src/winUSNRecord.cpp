@@ -12,83 +12,76 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "winUsnJrnlRecord.h"
-#include "winUsnJrnlRecordsFile.h"
+#include "winUSNRecord.h"
+
 #include "misc/debugMsgs.h"
 #include "misc/endianSwitch.h"
 
 #include <sstream>
 using namespace std;
 
-winUsnJrnlRecord::winUsnJrnlRecord(USN_RECORD_VER2 usnJrnlRecord, string strFilename, u_int64_t uiOffset)
-		:	m_usnJrnlRecord(usnJrnlRecord),
+winUSNRecord::winUSNRecord(USN_RECORD_VER2 stUSNJrnl, string strFilename, u_int64_t posRecord)
+		:	m_stUSNJrnl(stUSNJrnl),
 		  	m_strFilename(strFilename),
-			m_uiOffset(uiOffset)  {
-/*
-	memset(&m_usnJrnlRecord, 0, USN_RECORD_VER2_BASE_LENGTH);	
-	memcpy(&m_usnJrnlRecord, pData, (dwLength < USN_RECORD_VER2_BASE_LENGTH ? dwLength : USN_RECORD_VER2_BASE_LENGTH));
-	
-	LITTLETOHOST32(m_usnJrnlRecord.dwRecordLen);
-	LITTLETOHOST16(m_usnJrnlRecord.wMajorVer);
-	LITTLETOHOST16(m_usnJrnlRecord.wMinorVer);
-	LITTLETOHOST64(m_usnJrnlRecord.dwlFileRefNum);
-	LITTLETOHOST64(m_usnJrnlRecord.dwlParentFileRefNum);
-	LITTLETOHOST64(m_usnJrnlRecord.dwlUSN);
-	LITTLETOHOST64(m_usnJrnlRecord.liTimestamp);
-	LITTLETOHOST32(m_usnJrnlRecord.dwReason);
-	LITTLETOHOST32(m_usnJrnlRecord.dwSrcInfo);
-	LITTLETOHOST32(m_usnJrnlRecord.dwSecId);
-	LITTLETOHOST32(m_usnJrnlRecord.dwFileAttributes);
-	LITTLETOHOST16(m_usnJrnlRecord.wFileNameLen);
-	LITTLETOHOST16(m_usnJrnlRecord.wFileNameOffset);
-	
-	if (dwLength > USN_RECORD_VER2_BASE_LENGTH) {
-		//m_pUsnJrnlRecordsFile->getTwoByteCharString(&m_strFilename, m_uiOffset + USN_RECORD_VER2_BASE_LENGTH, 0, true);
-	} else {
-		DEBUG_ERROR("winUsnJrnlRecord::winUsnJrnlRecord() Invalid length value.");
-	}a*/
+			m_posRecord(posRecord)  {
 }
 
-winUsnJrnlRecord::~winUsnJrnlRecord() {
+winUSNRecord::~winUSNRecord() {
 }
 
-u_int16_t winUsnJrnlRecord::getVersion(u_int16_t* pMajorVer, u_int16_t* pMinorVer) {
-	if (pMajorVer != NULL) { *pMajorVer = m_usnJrnlRecord.wMajorVer; }
-	if (pMinorVer != NULL) { *pMinorVer = m_usnJrnlRecord.wMinorVer; }
-	return m_usnJrnlRecord.wMajorVer;
-}
-
-u_int64_t winUsnJrnlRecord::getMFT(u_int64_t* pFileNumber, u_int16_t* pSequence) {
-	if (pFileNumber != NULL && pSequence != NULL) {
-		*pFileNumber = m_usnJrnlRecord.dwlFileRefNum >> 16;
-		*pSequence = m_usnJrnlRecord.dwlFileRefNum & 0xFFFF;
+u_int16_t winUSNRecord::getVersion(u_int16_t* pvMajorVer, u_int16_t* pvMinorVer) {
+	if (pvMajorVer != NULL) { 
+		*pvMajorVer = m_stUSNJrnl.vMajorVer; 
 	}
-	return m_usnJrnlRecord.dwlFileRefNum;
+	if (pvMinorVer != NULL) { 
+		*pvMinorVer = m_stUSNJrnl.vMinorVer; }
+
+	return m_stUSNJrnl.vMajorVer;
 }
 
-u_int64_t winUsnJrnlRecord::getParentMFT(u_int64_t* pParentNumber, u_int16_t* pParentSequence) {
-	if (pParentNumber != NULL && pParentSequence != NULL) {
-		*pParentNumber = m_usnJrnlRecord.dwlParentRefNum >> 16;
-		*pParentSequence = m_usnJrnlRecord.dwlParentRefNum & 0xFFFF;
+u_int64_t winUSNRecord::getMFT(u_int64_t* pidFileNumber, u_int16_t* pcSequence) {
+	if (pidFileNumber != NULL && pcSequence != NULL) {
+		*pidFileNumber = m_stUSNJrnl.idFileRefNum >> 16;
+		*pcSequence = m_stUSNJrnl.idFileRefNum & 0xFFFF;
 	}
-	return m_usnJrnlRecord.dwlParentRefNum;
+	return m_stUSNJrnl.idFileRefNum;
 }
 
-string winUsnJrnlRecord::getReasonStr(u_int32_t* pReasonFlags, u_int32_t* pUnknownReasonFlags) {
-	if (pReasonFlags) { *pReasonFlags = m_usnJrnlRecord.dwReason; }
-	if (pUnknownReasonFlags) { *pUnknownReasonFlags = findUnknownCodes(m_usnJrnlRecord.dwReason, USNJRNL_REASONS, sizeof(USNJRNL_REASONS)); }
-	return getMessages(m_usnJrnlRecord.dwReason, USNJRNL_REASONS, sizeof(USNJRNL_REASONS));
+u_int64_t winUSNRecord::getParentMFT(u_int64_t* pidParentNumber, u_int16_t* pcParentSequence) {
+	if (pidParentNumber != NULL && pcParentSequence != NULL) {
+		*pidParentNumber = m_stUSNJrnl.idParentRefNum >> 16;
+		*pcParentSequence = m_stUSNJrnl.idParentRefNum & 0xFFFF;
+	}
+	return m_stUSNJrnl.idParentRefNum;
 }
 
-string winUsnJrnlRecord::getSourceInfoStr(u_int32_t* pSourceFlags, u_int32_t* pUnknownSourceFlags) {
-	if (pSourceFlags) { *pSourceFlags = m_usnJrnlRecord.dwSourceInfo; }
-	if (pUnknownSourceFlags) { *pUnknownSourceFlags = findUnknownCodes(m_usnJrnlRecord.dwSourceInfo, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES)); }
-	return getMessages(m_usnJrnlRecord.dwSourceInfo, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES));
+string winUSNRecord::getReasons(u_int32_t* pfxReasons, u_int32_t* pfxUnkReasons) {
+	if (pfxReasons) { 
+		*pfxReasons = m_stUSNJrnl.fxReasons; 
+	}
+	if (pfxUnkReasons) { 
+		*pfxUnkReasons = findUnknownCodes(m_stUSNJrnl.fxReasons, USNJRNL_REASONS, sizeof(USNJRNL_REASONS)); 
+	}
+	return getMessages(m_stUSNJrnl.fxReasons, USNJRNL_REASONS, sizeof(USNJRNL_REASONS));
 }
 
-string winUsnJrnlRecord::getFileAttributesStr(u_int32_t* pFileAttrFlags, u_int32_t* pUnknownFileAttrFlags) {
-	if (pFileAttrFlags) { *pFileAttrFlags = m_usnJrnlRecord.dwFileAttributes; }
-	if (pUnknownFileAttrFlags) { *pUnknownFileAttrFlags = findUnknownCodes(m_usnJrnlRecord.dwFileAttributes, FILE_ATTRIBUTES, sizeof(FILE_ATTRIBUTES)); }
-	return getMessages(m_usnJrnlRecord.dwFileAttributes, FILE_ATTRIBUTES, sizeof(FILE_ATTRIBUTES));
+string winUSNRecord::getSources(u_int32_t* pfxSources, u_int32_t* pfxUnkSources) {
+	if (pfxSources) { 
+		*pfxSources = m_stUSNJrnl.fxSources; 
+	}
+	if (pfxUnkSources) { 
+		*pfxUnkSources = findUnknownCodes(m_stUSNJrnl.fxSources, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES)); 
+	}
+	return getMessages(m_stUSNJrnl.fxSources, USNJRNL_SOURCES, sizeof(USNJRNL_SOURCES));
+}
+
+string winUSNRecord::getFileAttrs(u_int32_t* pfxFileAttrs, u_int32_t* pfxUnkFileAttrs) {
+	if (pfxFileAttrs) { 
+		*pfxFileAttrs = m_stUSNJrnl.fxFileAttrs; 
+	}
+	if (pfxUnkFileAttrs) { 
+		*pfxUnkFileAttrs = findUnknownCodes(m_stUSNJrnl.fxFileAttrs, FILE_ATTRIBUTES, sizeof(FILE_ATTRIBUTES)); 
+	}
+	return getMessages(m_stUSNJrnl.fxFileAttrs, FILE_ATTRIBUTES, sizeof(FILE_ATTRIBUTES));
 }
 

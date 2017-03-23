@@ -12,70 +12,70 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "winUsnJrnlRecordsFile.h"
+#include "winUSNJournal.h"
 
 #include "usnJrnl.h"
 #include "misc/debugMsgs.h"
 #include "misc/endianSwitch.h"
 
-winUsnJrnlRecordsFile::winUsnJrnlRecordsFile(string strFilename)	:	binDataFile(strFilename),
-																							m_uiDataPos(0) {
-	DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile()");
-	if (findNonNull(&m_uiDataPos, m_uiDataPos) >= 0) {	//Start at beginning of file and update m_uiDataPos when non-null found
-		DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Successfully found non-null start of data!");
+winUSNJournal::winUSNJournal(string strFilename)	:	binDataFile(strFilename),
+																		m_posFileData(0) {
+	DEBUG_INFO("winUSNJournal::winUSNJournal()");
+	if (findNonNull(&m_posFileData, m_posFileData) >= 0) {	//Start at beginning of file and update m_posFileData when non-null found
+		DEBUG_INFO("winUSNJournal::winUSNJournal() Successfully found non-null start of data!");
 	} else {
-		DEBUG_ERROR("winUsnJrnlRecordsFile:winUsnJrnlRecordsFile() Unable to find non-null start of data!");
+		DEBUG_ERROR("winUSNJournal:winUSNJournal() Unable to find non-null start of data!");
 	}
 }
 
-winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile() {
-	DEBUG_INFO("winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile()");
+winUSNJournal::~winUSNJournal() {
+	DEBUG_INFO("winUSNJournal::~winUSNJournal()");
 }
 
-WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnlRecord) {
+WIN_USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
 	WIN_USNJRNL_RV rv = WIN_USNJRNL_ERROR;
 		
-	if (ppUsnJrnlRecord && *ppUsnJrnlRecord == NULL) {
+	if (pp_clUSNRecord && *pp_clUSNRecord == NULL) {
 
-		USN_RECORD_VER2 usnJrnlRecord;
+		USN_RECORD_VER2 stUSNRecord;
 		string strFilename;
-		u_int32_t uiSizeRead = 0;
+		u_int32_t cDataRead = 0;
 
-		if (getData((char*)&usnJrnlRecord, USN_RECORD_VER2_BASE_LENGTH, &uiSizeRead) && uiSizeRead == USN_RECORD_VER2_BASE_LENGTH) {
+		if (getData((char*)&stUSNRecord, USN_RECORD_VER2_BASE_LENGTH, &cDataRead) && cDataRead == USN_RECORD_VER2_BASE_LENGTH) {
 
-			LITTLETOHOST32(usnJrnlRecord.dwRecordLen);
-			LITTLETOHOST16(usnJrnlRecord.wMajorVer);
-			LITTLETOHOST16(usnJrnlRecord.wMinorVer);
-			LITTLETOHOST64(usnJrnlRecord.dwlFileRefNum);
-			LITTLETOHOST64(usnJrnlRecord.dwlParentRefNum);
-			LITTLETOHOST64(usnJrnlRecord.dwlUSN);
-			LITTLETOHOST64(usnJrnlRecord.dwlTimestamp);
-			LITTLETOHOST32(usnJrnlRecord.dwReason);
-			LITTLETOHOST32(usnJrnlRecord.dwSourceInfo);
-			LITTLETOHOST32(usnJrnlRecord.dwSecurityID);
-			LITTLETOHOST32(usnJrnlRecord.dwFileAttributes);
-			LITTLETOHOST16(usnJrnlRecord.wFilenameLen);
-			LITTLETOHOST16(usnJrnlRecord.wFilenameOffset);
+			LITTLETOHOST32(stUSNRecord.cRecordLen);
+			LITTLETOHOST16(stUSNRecord.vMajorVer);
+			LITTLETOHOST16(stUSNRecord.vMinorVer);
+			LITTLETOHOST64(stUSNRecord.idFileRefNum);
+			LITTLETOHOST64(stUSNRecord.idParentRefNum);
+			LITTLETOHOST64(stUSNRecord.idUSN);
+			LITTLETOHOST64(stUSNRecord.dtmTimestamp);
+			LITTLETOHOST32(stUSNRecord.fxReasons);
+			LITTLETOHOST32(stUSNRecord.fxSources);
+			LITTLETOHOST32(stUSNRecord.idSecurityID);
+			LITTLETOHOST32(stUSNRecord.fxFileAttrs);
+			LITTLETOHOST16(stUSNRecord.cFilenameLen);
+			LITTLETOHOST16(stUSNRecord.posFilename);
 
-			if (	usnJrnlRecord.dwRecordLen <= (USN_RECORD_VER2_BASE_LENGTH + sizeof(char) * 2 * WIN_MAX_PATH) &&
-					usnJrnlRecord.wMajorVer == 2 &&
-					usnJrnlRecord.wMinorVer == 0 &&
-					usnJrnlRecord.dwlUSN == m_uiDataPos) {
+			if (	stUSNRecord.cRecordLen <= (USN_RECORD_VER2_BASE_LENGTH + sizeof(char) * 2 * WIN_MAX_PATH) &&
+					stUSNRecord.vMajorVer == 2 &&
+					stUSNRecord.vMinorVer == 0 &&
+					stUSNRecord.idUSN == m_posFileData) {
 
-				if (getTwoByteCharString(&strFilename, m_uiDataPos + usnJrnlRecord.wFilenameOffset, usnJrnlRecord.wFilenameLen, false)) {
-					*ppUsnJrnlRecord = new winUsnJrnlRecord(usnJrnlRecord, strFilename, m_uiDataPos);
-					m_uiDataPos += usnJrnlRecord.dwRecordLen;
+				if (getTwoByteCharString(&strFilename, m_posFileData + stUSNRecord.posFilename, stUSNRecord.cFilenameLen, false)) {
+					*pp_clUSNRecord = new winUSNRecord(stUSNRecord, strFilename, m_posFileData);
+					m_posFileData += stUSNRecord.cRecordLen;
 				} else {
-					DEBUG_ERROR("winUsnJrnlRecordsFile::getNextRecord() Unable to read filename string.");
+					DEBUG_ERROR("winUSNJournal::getNextRecord() Unable to read filename string.");
 				}
 			} else {
-				DEBUG_ERROR("winUsnJrnlRecordsFile::getNextRecord() Invalid USN record components.");
+				DEBUG_ERROR("winUSNJournal::getNextRecord() Invalid USN record components.");
 			}
 		} else {
-			DEBUG_ERROR("winUsnJrnlRecordsFile::getNextRecord() Unable to read USN_RECORD_VER2.");
+			DEBUG_ERROR("winUSNJournal::getNextRecord() Unable to read USN_RECORD_VER2.");
 		}
 	} else {
-		DEBUG_ERROR("winUsnJrnlRecordsFile::getNextRecord() Invalid destination pointer.");
+		DEBUG_ERROR("winUSNJournal::getNextRecord() Invalid destination pointer.");
 	}
 	
 	return rv;
