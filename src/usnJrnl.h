@@ -84,7 +84,6 @@ typedef struct _USN_RECORD_VER2 {
 // Type: $DATA (128-1)   Name: N/A   Non-Resident   size: 2621440  init_size: 2490368
 
 // https://msdn.microsoft.com/en-us/library/aa365722(v=vs.85).aspx
-//
 static coded_message_t USNJRNL_REASONS[] = {
 	{"USN_REASON_BASIC_INFO_CHANGE",		0x00008000,	"A user has either changed one or more file or directory attributes (for example, the read-only, hidden, system, archive, or sparse attribute), or one or more time stamps."},
 	{"USN_REASON_CLOSE",						0x80000000,	"The file or directory is closed."},
