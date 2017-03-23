@@ -13,10 +13,11 @@
 // limitations under the License.
 
 #include "winUSNJournal.h"
-
 #include "usnJrnl.h"
 #include "misc/debugMsgs.h"
 #include "misc/endianSwitch.h"
+
+typedef enum { USNJRNL_ERROR, USNJRNL_SUCCESS } USNJRNL_RV;
 
 winUSNJournal::winUSNJournal(string strFilename)	:	binDataFile(strFilename),
 																		m_posFileData(0) {
@@ -32,8 +33,8 @@ winUSNJournal::~winUSNJournal() {
 	DEBUG_INFO("winUSNJournal::~winUSNJournal()");
 }
 
-WIN_USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
-	WIN_USNJRNL_RV rv = WIN_USNJRNL_ERROR;
+USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
+	USNJRNL_RV rv = USNJRNL_ERROR;
 		
 	if (pp_clUSNRecord && *pp_clUSNRecord == NULL) {
 
@@ -65,6 +66,7 @@ WIN_USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
 				if (getTwoByteCharString(&strFilename, m_posFileData + stUSNRecord.posFilename, stUSNRecord.cFilenameLen, false)) {
 					*pp_clUSNRecord = new winUSNRecord(stUSNRecord, strFilename, m_posFileData);
 					m_posFileData += stUSNRecord.cRecordLen;
+					rv = USNJRNL_SUCCESS;
 				} else {
 					DEBUG_ERROR("winUSNJournal::getNextRecord() Unable to read filename string.");
 				}

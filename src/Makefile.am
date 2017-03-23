@@ -1,4 +1,4 @@
 AM_CXXFLAGS = -I../../
 
-noinst_LIBRARIES = libWinUSNJournal.a
-libWinUSNJournal_a_SOURCES = usnJrnl.h winUSNRecord.cpp winUSNRecord.h winUSNJournal.cpp winUSNJournal.h
+noinst_LIBRARIES = libWinUSNJrnl.a
+libWinUSNJrnl_a_SOURCES = usnJrnl.h winUSNRecord.cpp winUSNRecord.h winUSNJournal.cpp winUSNJournal.h
