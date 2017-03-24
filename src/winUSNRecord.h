@@ -16,12 +16,11 @@
 #define _WINCHANGEJOURNALRECORD_H_
 
 #include "usnJrnl.h"
+#include "misc/boost_lexical_cast_wrapper.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
 using namespace std;
-
-typedef enum { WIN_USNJRNL_ERROR, WIN_USNJRNL_SUCCESS } WIN_USNJRNL_RV;
 
 class winUSNJournal;
 
@@ -32,18 +31,19 @@ class winUSNRecord {
 		
 		u_int64_t	getUSN()					{ return m_stUSNJrnl.idUSN; };
 		u_int64_t	getTimestamp()			{ return m_stUSNJrnl.dtmTimestamp; };
-		u_int32_t	getReasons()			{ return m_stUSNJrnl.fxReasons; };
-		u_int32_t	getSources()			{ return m_stUSNJrnl.fxSources; };
-		u_int32_t	getSecurityID ()		{ return m_stUSNJrnl.idSecurityID; };
-		u_int32_t	getFileAttrs()			{ return m_stUSNJrnl.fxFileAttrs; };
+		u_int32_t	getSecurityID()		{ return m_stUSNJrnl.idSecurityID; };
 		string		getFilename() 			{ return m_strFilename; };
+		u_int64_t	getRecordPos()			{ return m_posRecord; };
+		u_int32_t	getRecordLen()			{ return m_stUSNJrnl.cRecordLen; };
+		u_int64_t	getMFTEntry() 			{ return m_stUSNJrnl.idFileRefNum & 0xFFFFFFFFFFFF; };
+		u_int16_t	getMFTSeq()				{ return m_stUSNJrnl.idFileRefNum >> 48; };
+		u_int64_t	getParentMFTEntry()	{ return m_stUSNJrnl.idParentRefNum & 0xFFFFFFFFFFFF; };
+		u_int16_t	getParentMFTSeq()		{ return m_stUSNJrnl.idParentRefNum >> 48; };
+		string		getVersion()			{ return boost_lexical_cast_wrapper<string>(m_stUSNJrnl.vMajorVer) + "." + boost_lexical_cast_wrapper<string>(m_stUSNJrnl.vMinorVer); };
 
-		u_int16_t	getVersion(u_int16_t* pvMajorVer = NULL, u_int16_t* pvMinorVer = NULL);
-		u_int64_t	getMFT(u_int64_t* pidFileNumber = NULL, u_int16_t* pcSequence = NULL);
-		u_int64_t	getParentMFT(u_int64_t* pidParentNumber = NULL, u_int16_t* pcParentSequence = NULL);
-		string		getReasons(u_int32_t* pfxReasons = NULL, u_int32_t* pfxUnkReasons = NULL);
-		string		getSources(u_int32_t* pfxSources = NULL, u_int32_t* pfxUnkSources = NULL);
-		string		getFileAttrs(u_int32_t* pfxFileAttrs = NULL, u_int32_t* pfxUnkFileAttrs = NULL);
+		string		getReasons(u_int32_t* pfxReasons = NULL, u_int32_t* pfxUnkReasons = NULL, bool fShortMessages=false);
+		string		getSources(u_int32_t* pfxSources = NULL, u_int32_t* pfxUnkSources = NULL, bool fShortMessages=false);
+		string		getFileAttrs(u_int32_t* pfxFileAttrs = NULL, u_int32_t* pfxUnkFileAttrs = NULL, bool fShortMessages=false);
 
 	private:
 		u_int64_t					m_posRecord;

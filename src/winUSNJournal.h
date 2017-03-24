@@ -16,10 +16,11 @@
 #define _WINUSNJOURNAL_H_
 
 #include "winUSNRecord.h"
-
 #include "libbinData/src/binDataFile.h"
 #include <string>
 using namespace std;
+
+typedef enum { USNJRNL_ERROR, USNJRNL_SUCCESS } USNJRNL_RV;
 
 class winUSNJournal: public binDataFile {
 	friend class winUSNRecord;
@@ -28,10 +29,7 @@ class winUSNJournal: public binDataFile {
 		winUSNJournal(string strFilename);
 		~winUSNJournal();
 		
-		WIN_USNJRNL_RV getNextRecord(winUSNRecord** ppCusnRecord);
-	
-	private:
-		u_int32_t m_posFileData;
+		USNJRNL_RV getNextRecord(winUSNRecord** ppCusnRecord);
 };
 
 #endif //_WINUSNJOURNAL_H_

@@ -85,36 +85,36 @@ typedef struct _USN_RECORD_VER2 {
 
 // https://msdn.microsoft.com/en-us/library/aa365722(v=vs.85).aspx
 static coded_message_t USNJRNL_REASONS[] = {
-	{"USN_REASON_BASIC_INFO_CHANGE",		0x00008000,	"A user has either changed one or more file or directory attributes (for example, the read-only, hidden, system, archive, or sparse attribute), or one or more time stamps."},
-	{"USN_REASON_CLOSE",						0x80000000,	"The file or directory is closed."},
-	{"USN_REASON_COMPRESSION_CHANGE",	0x00020000,	"The compression state of the file or directory is changed from or to compressed."},
-	{"USN_REASON_DATA_EXTEND",				0x00000002,	"The file or directory is extended (added to)."},
-	{"USN_REASON_DATA_OVERWRITE",			0x00000001,	"The data in the file or directory is overwritten."},
-	{"USN_REASON_DATA_TRUNCATION",		0x00000004,	"The file or directory is truncated."},
-	{"USN_REASON_EA_CHANGE",				0x00000400,	"The user made a change to the extended attributes of a file or directory."},
-	{"USN_REASON_ENCRYPTION_CHANGE",		0x00040000,	"The file or directory is encrypted or decrypted."},
-	{"USN_REASON_FILE_CREATE",				0x00000100,	"The file or directory is created for the first time."},
-	{"USN_REASON_FILE_DELETE",				0x00000200,	"The file or directory is deleted."},
-	{"USN_REASON_HARD_LINK_CHANGE",		0x00010000,	"An NTFS file system hard link is added to or removed from the file or directory."},
-	{"USN_REASON_INDEXABLE_CHANGE",		0x00004000,	"A user changes the FILE_ATTRIBUTE_NOT_CONTENT_INDEXED attribute."},
-	{"USN_REASON_INTEGRITY_CHANGE",		0x00800000,	"A user changed the state of the FILE_ATTRIBUTE_INTEGRITY_STREAM attribute for the given stream."},
-	{"USN_REASON_NAMED_DATA_EXTEND",		0x00000020,	"The one or more named data streams for a file are extended (added to)."},
-	{"USN_REASON_NAMED_DATA_OVERWRITE",	0x00000010,	"The data in one or more named data streams for a file is overwritten."},
-	{"USN_REASON_NAMED_DATA_TRUNCATION",0x00000040,	"The one or more named data streams for a file is truncated."},
-	{"USN_REASON_OBJECT_ID_CHANGE",		0x00080000,	"The object identifier of a file or directory is changed."},
-	{"USN_REASON_RENAME_NEW_NAME",		0x00002000,	"A file or directory is renamed, and the file name in the USN_RECORD_V2 structure is the new name."},
-	{"USN_REASON_RENAME_OLD_NAME",		0x00001000,	"The file or directory is renamed, and the file name in the USN_RECORD_V2 structure is the previous name."},
-	{"USN_REASON_REPARSE_POINT_CHANGE",	0x00100000,	"The reparse point that is contained in a file or directory is changed, or a reparse point is added to or deleted from a file or directory."},
-	{"USN_REASON_SECURITY_CHANGE",		0x00000800,	"A change is made in the access rights to a file or directory."},
-	{"USN_REASON_STREAM_CHANGE",			0x00200000,	"A named stream is added to or removed from a file, or a named stream is renamed."},
-	{"USN_REASON_TRANSACTED_CHANGE",		0x00400000,	"The given stream is modified through a TxF transaction."}
+	{"USN_REASON_BASIC_INFO_CHANGE",		0x00008000,	"A user has either changed one or more file or directory attributes (for example, the read-only, hidden, system, archive, or sparse attribute), or one or more time stamps.", "BASIC_INFO_CHANGE"},
+	{"USN_REASON_CLOSE",						0x80000000,	"The file or directory is closed.", "CLOSE"},
+	{"USN_REASON_COMPRESSION_CHANGE",	0x00020000,	"The compression state of the file or directory is changed from or to compressed.", "COMPRESSION_CHANGE"},
+	{"USN_REASON_DATA_EXTEND",				0x00000002,	"The file or directory is extended (added to).", "DATA_EXTEND"},
+	{"USN_REASON_DATA_OVERWRITE",			0x00000001,	"The data in the file or directory is overwritten.", "DATA_OVERWRITE"},
+	{"USN_REASON_DATA_TRUNCATION",		0x00000004,	"The file or directory is truncated.", "DATA_TRUNCATION"},
+	{"USN_REASON_EA_CHANGE",				0x00000400,	"The user made a change to the extended attributes of a file or directory.", "EA_CHANGE"},
+	{"USN_REASON_ENCRYPTION_CHANGE",		0x00040000,	"The file or directory is encrypted or decrypted.", "ENCRYPTION_CHANGE"},
+	{"USN_REASON_FILE_CREATE",				0x00000100,	"The file or directory is created for the first time.", "FILE_CREATE"},
+	{"USN_REASON_FILE_DELETE",				0x00000200,	"The file or directory is deleted.", "FILE_DELETE"},
+	{"USN_REASON_HARD_LINK_CHANGE",		0x00010000,	"An NTFS file system hard link is added to or removed from the file or directory.", "HARD_LINK_CHANGE"},
+	{"USN_REASON_INDEXABLE_CHANGE",		0x00004000,	"A user changes the FILE_ATTRIBUTE_NOT_CONTENT_INDEXED attribute.", "INDEXABLE_CHANGE"},
+	{"USN_REASON_INTEGRITY_CHANGE",		0x00800000,	"A user changed the state of the FILE_ATTRIBUTE_INTEGRITY_STREAM attribute for the given stream.", "INTEGRITY_CHANGE"},
+	{"USN_REASON_NAMED_DATA_EXTEND",		0x00000020,	"The one or more named data streams for a file are extended (added to).", "NAMED_DATA_EXTEND"},
+	{"USN_REASON_NAMED_DATA_OVERWRITE",	0x00000010,	"The data in one or more named data streams for a file is overwritten.", "NAMED_DATA_OVERWRITE"},
+	{"USN_REASON_NAMED_DATA_TRUNCATION",0x00000040,	"The one or more named data streams for a file is truncated.", "NAMED_DATA_TRUNCATION"},
+	{"USN_REASON_OBJECT_ID_CHANGE",		0x00080000,	"The object identifier of a file or directory is changed.", "OBJECT_ID_CHANGE"},
+	{"USN_REASON_RENAME_NEW_NAME",		0x00002000,	"A file or directory is renamed, and the file name in the USN_RECORD_V2 structure is the new name.", "RENAME_NEW_NAME"},
+	{"USN_REASON_RENAME_OLD_NAME",		0x00001000,	"The file or directory is renamed, and the file name in the USN_RECORD_V2 structure is the previous name.", "RENAME_OLD_NAME"},
+	{"USN_REASON_REPARSE_POINT_CHANGE",	0x00100000,	"The reparse point that is contained in a file or directory is changed, or a reparse point is added to or deleted from a file or directory.", "REPARSE_POINT_CHANGE"},
+	{"USN_REASON_SECURITY_CHANGE",		0x00000800,	"A change is made in the access rights to a file or directory.", "SECURITY_CHANGE"},
+	{"USN_REASON_STREAM_CHANGE",			0x00200000,	"A named stream is added to or removed from a file, or a named stream is renamed.", "STREAM_CHANGE"},
+	{"USN_REASON_TRANSACTED_CHANGE",		0x00400000,	"The given stream is modified through a TxF transaction.", "TRANSACTED_CHANGE"}
 };
 
 static coded_message_t USNJRNL_SOURCES[] = {
-	{"USN_SOURCE_AUXILIARY_DATA",						0x00000002,	"The operation adds a private data stream to a file or directory."},
-	{"USN_SOURCE_DATA_MANAGEMENT",					0x00000001,	"The operation provides information about a change to the file or directory made by the operating system."},
-	{"USN_SOURCE_REPLICATION_MANAGEMENT",			0x00000004,	"The operation is modifying a file to match the contents of the same file which exists in another member of the replica set."},
-	{"USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT",	0x00000008,	"The operation is modifying a file on client systems to match the contents of the same file that exists in the cloud."}
+	{"USN_SOURCE_AUXILIARY_DATA",						0x00000002,	"The operation adds a private data stream to a file or directory.", "AUXILIARY_DATA"},
+	{"USN_SOURCE_DATA_MANAGEMENT",					0x00000001,	"The operation provides information about a change to the file or directory made by the operating system.", "DATA_MANAGEMENT"},
+	{"USN_SOURCE_REPLICATION_MANAGEMENT",			0x00000004,	"The operation is modifying a file to match the contents of the same file which exists in another member of the replica set.", "REPLICATION_MANAGEMENT"},
+	{"USN_SOURCE_CLIENT_REPLICATION_MANAGEMENT",	0x00000008,	"The operation is modifying a file on client systems to match the contents of the same file that exists in the cloud.", "CLIENT_REPLICATION_MANAGEMENT"}
 };
 
 #endif //_USNJRNL_H_
