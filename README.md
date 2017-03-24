@@ -45,5 +45,8 @@ Notes
 
 References
 -----
-* [](https://msdn.microsoft.com/en-us/library/aa365722(v=vs.85).aspx)
+* [USN_RECORD_V2 structure](https://msdn.microsoft.com/en-us/library/aa365722(v=vs.85).aspx)
+* [Change Journals](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363798(v=vs.85).aspx)
+* [Change Journal Records](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363803(v=vs.85).aspx)
+* [USN Journal](https://en.wikipedia.org/wiki/USN_Journal)
 
