@@ -49,4 +49,11 @@ References
 * [Change Journals](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363798(v=vs.85).aspx)
 * [Change Journal Records](https://msdn.microsoft.com/en-us/library/windows/desktop/aa363803(v=vs.85).aspx)
 * [USN Journal](https://en.wikipedia.org/wiki/USN_Journal)
+* [Fsutil usn](https://technet.microsoft.com/en-us/library/cc788042(v=ws.11).aspx)
+* [Fsutil: usn](https://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/fsutil_usn.mspx?mfr=true)
+* [Keeping an Eye on Your NTFS Drives: the Windows 2000 Change Journal Explained](https://www.microsoft.com/msj/0999/journal/journal.aspx)
+* [Re-Introducing $UsnJrnl](http://journeyintoir.blogspot.com/2013/01/re-introducing-usnjrnl.html)
+* [Dear Diary: AntiMalwareLab.exe File_Created](http://www.securitybraindump.com/2011/07/dear-diary-today-i-was-infected-with.html)
+* [USN Change Journal](http://forensicsfromthesausagefactory.blogspot.com/2010/08/usn-change-journal.html)
+* [TZWorks® Windows Journal Parser (jp) Users Guide](https://tzworks.net/prototypes/jp/jp.users.guide.pdf)
 
