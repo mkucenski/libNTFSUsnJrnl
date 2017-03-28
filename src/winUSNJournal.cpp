@@ -38,7 +38,7 @@ USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
 		USN_RECORD_VER2 stUSNRecord;
 		string strFilename;
 		u_int64_t cDataRead = 0;
-		u_int64_t posFile = offset();
+		u_int64_t posFile = currPos();
 
 		if (getData((char*)&stUSNRecord, USN_RECORD_VER2_BASE_LENGTH, &cDataRead) >=0 && cDataRead == USN_RECORD_VER2_BASE_LENGTH) {
 			LITTLETOHOST32(stUSNRecord.cRecordLen);
@@ -68,7 +68,7 @@ USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
 
 					// Can't rely on the various read functions above to position the pointer in the right place for the next record.
 					// Also can't assume there won't be a sparse set of null data between records that has to be skipped.
-					if (seek(posFile + stUSNRecord.cRecordLen) >=0 && skipNullBlocks(8, NULL) < 0) {
+					if (movePos(posFile + stUSNRecord.cRecordLen) >=0 && skipNullBlocks(8, NULL) < 0) {
 						DEBUG_ERROR("winUSNJournal:getNextRecord() Unable to find non-null data!");
 					}
 				} else {
