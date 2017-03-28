@@ -37,8 +37,8 @@ USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
 
 		USN_RECORD_VER2 stUSNRecord;
 		string strFilename;
-		u_int32_t cDataRead = 0;
-		u_int32_t posFile = offset();
+		u_int64_t cDataRead = 0;
+		u_int64_t posFile = offset();
 
 		if (getData((char*)&stUSNRecord, USN_RECORD_VER2_BASE_LENGTH, &cDataRead) >=0 && cDataRead == USN_RECORD_VER2_BASE_LENGTH) {
 			LITTLETOHOST32(stUSNRecord.cRecordLen);
