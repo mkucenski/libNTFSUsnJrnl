@@ -27,6 +27,7 @@ Dependencies
 * [Boost Date-Time](http://www.boost.org)
 * [autoconf-archive](https://savannah.gnu.org/projects/autoconf-archive/)
 * [My libtimeUtils](https://github.com/mkucenski/libtimeUtils)
+* [My libbinData](https://github.com/mkucenski/libbinData)
 * ...
 
 Bugs
