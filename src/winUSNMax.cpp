@@ -12,50 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #define _DEBUG_
+#include "misc/debugMsgs.h"
+#include "misc/errMsgs.h"
+
 #include "winUsnJrnlRecordsFile.h"
 
 #include "usnJrnl.h"
-#include "misc/debugMsgs.h"
 #include "misc/endianSwitch.h"
 
 winUsnJrnlRecordsFile::winUsnJrnlRecordsFile(string strFilename)	:	binDataFile(strFilename),
 																							m_lNextRecordPos(0) {
-	DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile()");
+	DEBUG("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile()");
 
 	int iBufferCount = 1024;
 	DWORD[iBufferCount] dwBuffer;
 	long lBufferPos = 0;
 	bool bFound = false;
 
-	DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Reading from <" << strFilename << "> to find start of non-null data.");
+	DEBUG("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Reading from <" << strFilename << "> to find start of non-null data.");
 	while (!bFound) {
 		if (getData(&dwBuffer, iBufferCount * sizeof(DWORD), lBufferPos, NULL) >= 0) {
 			lBufferPos += iBufferCount * sizeof(DWORD);
-			DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Parsing read buffer to find start of non-null data.");
+			DEBUG("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Parsing read buffer to find start of non-null data.");
 			for (int i=0; i<iBufferCount; i++) {
 				if (dwBuffer[i] != 0) {
 					bFound = true; 
 					lBufferPos += i * sizeof(DWORD);
-					DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Found non-null data at position <" << lBufferPos << ">.");
+					DEBUG("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Found non-null data at position <" << lBufferPos << ">.");
 					break;
 				}
 			}
 		} else {
-			DEBUG_ERROR("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Failed reading buffer data.");
+			ERROR("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Failed reading buffer data.");
 		}
 	}
 
 	if (bFound) {
-		DEBUG_INFO("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Found valid data, setting m_lNextRecordPos = " << lBufferPos << ".");
+		DEBUG("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Found valid data, setting m_lNextRecordPos = " << lBufferPos << ".");
 		m_lNextRecordPos = lBufferPos;
 	} else {
-		DEBUG_ERROR("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Unable to find start of valid data.");
+		ERROR("winUsnJrnlRecordsFile::winUsnJrnlRecordsFile() Unable to find start of valid data.");
 		m_lNextRecordPos = -1;
 	}
 }
 
 winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile() {
-	DEBUG_INFO("winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile()");
+	DEBUG("winUsnJrnlRecordsFile::~winUsnJrnlRecordsFile()");
 }
 
 WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnlRecord) {
@@ -64,10 +67,10 @@ WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnl
 	if (ppUsnJrnlRecord && *ppUsnJrnlRecord == NULL) {
 		if (m_lNextRecordPos != -1) {
 		} else {
-			DEBUG_ERROR("winUsnJrnlRecordsFile::getNextRecord() Invalid record position.");
+			ERROR("winUsnJrnlRecordsFile::getNextRecord() Invalid record position.");
 		}
 	} else {
-		DEBUG_ERROR("winUsnJrnlRecordsFile::getNextRecord() Invalid destination pointer.");
+		ERROR("winUsnJrnlRecordsFile::getNextRecord() Invalid destination pointer.");
 	}
 
 	return rv;
@@ -91,20 +94,20 @@ WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnl
 			if (dwHeaderID == EVENTLOGRECORD_HEADER_ID) {
 				bFound = true;
 			} else {
-				DEBUG_INFO("winEventFile::getNextRecord() Next record was not found in the expected location.  Searching...");
+				DEBUG("winEventFile::getNextRecord() Next record was not found in the expected location.  Searching...");
 				while (!bFound) {
 					if (getData(&dwHeaderID, sizeof(DWORD), NULL) >= 0) {
 						LITTLETOHOST32(dwHeaderID);
 						
 						if (dwHeaderID == EVENTLOGRECORD_HEADER_ID) {
-							DEBUG_INFO("winEventFile::getNextRecord() Next record found at offset: " << offset() - 8 << " (diff = " << ((offset() - 8) - m_lNextRecordPos) << ")");
+							DEBUG("winEventFile::getNextRecord() Next record found at offset: " << offset() - 8 << " (diff = " << ((offset() - 8) - m_lNextRecordPos) << ")");
 							bFound = true;
 							m_lNextRecordPos = offset() - 8;
 						} else {
 							dwLength = dwHeaderID;
 						}
 					} else {
-						DEBUG_ERROR("winEventFile::getNextRecord() Failure reading data while trying to find record header.");
+						ERROR("winEventFile::getNextRecord() Failure reading data while trying to find record header.");
 						break;
 					}
 				}
@@ -118,21 +121,21 @@ WIN_USNJRNL_RV winUsnJrnlRecordsFile::getNextRecord(winUsnJrnlRecord** ppUsnJrnl
 						m_lNextRecordPos += dwLength;
 						rv = WIN_EVENT_SUCCESS;
 					} else {
-						DEBUG_ERROR("winEventFile::getNextRecord() Failure reading next record.");
+						ERROR("winEventFile::getNextRecord() Failure reading next record.");
 					}
 					free(buffer);
 					buffer = NULL;
 				} else {
-					DEBUG_ERROR("winEventFile::getNextRecord() Unable to allocate buffer for record storage.");
+					ERROR("winEventFile::getNextRecord() Unable to allocate buffer for record storage.");
 				}
 			} else {
-				DEBUG_ERROR("winEventFile::getNextRecord() Unable to find next record.");
+				ERROR("winEventFile::getNextRecord() Unable to find next record.");
 			}
 		} else {
-			DEBUG_ERROR("winEventFile::getNextRecord() Failed reading length/header.");
+			ERROR("winEventFile::getNextRecord() Failed reading length/header.");
 		}
 	} else {
-		DEBUG_ERROR("winEventFile::getNextRecord() Invalid destination pointer.");
+		ERROR("winEventFile::getNextRecord() Invalid destination pointer.");
 	}
 	
 	return rv;
