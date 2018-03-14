@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #define _DEBUG_ 1
+// #define _DEBUG_
+#include "misc/debugMsgs.h"
+#include "misc/errMsgs.h"
 
 #include "winUSNJournal.h"
 #include "usnJrnl.h"
-#include "misc/debugMsgs.h"
 #include "misc/endianSwitch.h"
 
 winUSNJournal::winUSNJournal(string strFilename)	:	binDataFile(strFilename) {
-	DEBUG_INFO("winUSNJournal::winUSNJournal()");
+	DEBUG("winUSNJournal::winUSNJournal()");
 	if (skipNullBlocks(8, NULL) < 0) {
-		DEBUG_ERROR("winUSNJournal:winUSNJournal() Unable to find non-null start of data!");
+		ERROR("winUSNJournal:winUSNJournal() Unable to find non-null start of data!");
 	}
 }
 
 winUSNJournal::~winUSNJournal() {
-	DEBUG_INFO("winUSNJournal::~winUSNJournal()");
+	DEBUG("winUSNJournal::~winUSNJournal()");
 }
 
 USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
@@ -55,33 +56,33 @@ USNJRNL_RV winUSNJournal::getNextRecord(winUSNRecord** pp_clUSNRecord) {
 			LITTLETOHOST16(stUSNRecord.cFilenameLen);
 			LITTLETOHOST16(stUSNRecord.posFilename);
 
-			DEBUG_INFO("winUSNJournal::getNextRecord() posFile=" << posFile << ", cRecordLen=" << stUSNRecord.cRecordLen << ", vMajorVer=" << stUSNRecord.vMajorVer << ", vMinorVer=" << stUSNRecord.vMinorVer << ", USN=" << stUSNRecord.idUSN);
+			DEBUG("winUSNJournal::getNextRecord() posFile=" << posFile << ", cRecordLen=" << stUSNRecord.cRecordLen << ", vMajorVer=" << stUSNRecord.vMajorVer << ", vMinorVer=" << stUSNRecord.vMinorVer << ", USN=" << stUSNRecord.idUSN);
 
 			if (	stUSNRecord.cRecordLen <= (USN_RECORD_VER2_BASE_LENGTH + sizeof(char) * 2 * WIN_MAX_PATH) &&
 					stUSNRecord.vMajorVer == 2 &&
 					stUSNRecord.vMinorVer == 0) {
 
 				if (getTwoByteCharString(&strFilename, stUSNRecord.cFilenameLen/2, false) >= 0) {
-					DEBUG_INFO("winUSNJournal::getNextRecord() strFilename='" << strFilename << "' (offset=" << stUSNRecord.posFilename << " len=" << stUSNRecord.cFilenameLen << ")");
+					DEBUG("winUSNJournal::getNextRecord() strFilename='" << strFilename << "' (offset=" << stUSNRecord.posFilename << " len=" << stUSNRecord.cFilenameLen << ")");
 					*pp_clUSNRecord = new winUSNRecord(stUSNRecord, strFilename, posFile);
 					rv = USNJRNL_SUCCESS;
 
 					// Can't rely on the various read functions above to position the pointer in the right place for the next record.
 					// Also can't assume there won't be a sparse set of null data between records that has to be skipped.
 					if (movePos(posFile + stUSNRecord.cRecordLen) >=0 && skipNullBlocks(8, NULL) < 0) {
-						DEBUG_ERROR("winUSNJournal:getNextRecord() Unable to find non-null data!");
+						ERROR("winUSNJournal:getNextRecord() Unable to find non-null data!");
 					}
 				} else {
-					DEBUG_ERROR("winUSNJournal::getNextRecord() Unable to read filename string.");
+					ERROR("winUSNJournal::getNextRecord() Unable to read filename string.");
 				}
 			} else {
-				DEBUG_ERROR("winUSNJournal::getNextRecord() Invalid USN record components.");
+				ERROR("winUSNJournal::getNextRecord() Invalid USN record components.");
 			}
 		} else {
-			DEBUG_ERROR("winUSNJournal::getNextRecord() Unable to read USN_RECORD_VER2 (cDataRead=" << cDataRead << ")." << "\n" << (char*)&stUSNRecord);
+			ERROR("winUSNJournal::getNextRecord() Unable to read USN_RECORD_VER2 (cDataRead=" << cDataRead << ")." << "\n" << (char*)&stUSNRecord);
 		}
 	} else {
-		DEBUG_ERROR("winUSNJournal::getNextRecord() Invalid destination pointer.");
+		ERROR("winUSNJournal::getNextRecord() Invalid destination pointer.");
 	}
 	
 	return rv;

@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #define _DEBUG_
+#include "misc/debugMsgs.h"
+#include "misc/errMsgs.h"
+
 #include "winUSNRecord.h"
 
-#include "misc/debugMsgs.h"
 #include "misc/endianSwitch.h"
 
 #include <sstream>
